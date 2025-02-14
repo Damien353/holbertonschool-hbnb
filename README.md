@@ -7,6 +7,13 @@ The HBnB Evolution project aims to develop a simplified application inspired by 
 
 ### 1.2 Portée du Document
 
+Ce document fournit une description détaillée de l’architecture technique du projet HBnB. Il est structuré en plusieurs sections, chacune couvrant un aspect clé du système :
+
+Architecture de Haut Niveau : Présentation de l’architecture en trois couches du système, accompagnée d’un diagramme de package expliquant la répartition des responsabilités et les interactions entre les composants.
+Couche Logique Métier : Détails sur la conception des modèles et leurs relations, illustrés par un diagramme de classe.
+Flux d’Interaction des API : Analyse des interactions entre les couches via des diagrammes de séquence, mettant en évidence le traitement des requêtes utilisateurs.
+Explications et Justifications : Chaque section est accompagnée de descriptions détaillées pour clarifier les choix de conception et assurer une compréhension globale du fonctionnement du système.
+
 Le document couvre :
 
 L'architecture globale du système à l'aide d'un diagramme de package de haut niveau.
