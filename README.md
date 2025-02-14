@@ -5,3 +5,9 @@ The HBnB Evolution project aims to develop a simplified application inspired by 
 
 ### 1.1 High-Level Architecture
 ![diagramme_package__720](https://github.com/user-attachments/assets/ae639521-ec0a-49d4-b84f-2c4e5bb07c0b)
+
+### 1.2 Business Logic Layer
+
+### 1.3 API Interaction Flow
+
+![diagramme_user_register_720](https://github.com/user-attachments/assets/04664916-8c48-4e29-b8cb-345140fd771e)
