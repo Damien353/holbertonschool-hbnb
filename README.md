@@ -9,29 +9,39 @@ The HBnB Evolution project aims to develop a simplified application inspired by 
 
 Ce document fournit une description détaillée de l’architecture technique du projet HBnB. Il est structuré en plusieurs sections, chacune couvrant un aspect clé du système :
 
-📍**Architecture de Haut Niveau** : Présentation de l’architecture en trois couches du système, accompagnée d’un diagramme de package expliquant la répartition des responsabilités et les interactions entre les composants.
-📍**Couche Logique Métier** : Détails sur la conception des modèles et leurs relations, illustrés par un diagramme de classe.
-📍**Flux d’Interaction des API** : Analyse des interactions entre les couches via des diagrammes de séquence, mettant en évidence le traitement des requêtes utilisateurs.
-📍**Explications et Justifications** : Chaque section est accompagnée de descriptions détaillées pour clarifier les choix de conception et assurer une compréhension globale du fonctionnement du système.
+📍**Architecture de Haut Niveau**:
+Présentation de l’architecture en trois couches du système, accompagnée d’un diagramme de package expliquant la répartition des responsabilités et les interactions entre les composants. 
 
-Le document couvre :
+📍**Couche Logique Métier**:
+Détails sur la conception des modèles et leurs relations, illustrés par un diagramme de classe.
+
+📍**Flux d’Interaction des API**:
+Analyse des interactions entre les couches via des diagrammes de séquence, mettant en évidence le traitement des requêtes utilisateurs.
+
+📍**Explications et Justifications**: 
+Chaque section est accompagnée de descriptions détaillées pour clarifier les choix de conception et assurer une compréhension globale du fonctionnement du système.
+
+**Le document couvre :**
 
 📍 L'architecture globale du système à l'aide d'un diagramme de package de haut niveau.
+
 📍 La couche logique métier avec un diagramme de classe détaillé.
+
 📍 Le flux d'interaction des API illustré à travers des diagrammes de séquence.
+
 📍 Des notes explicatives pour justifier les décisions de conception et assurer la clarté.
 
 ## 2. Architecture de Haut Niveau
 
 ### 2.1 Vue d'Ensemble
 
-HBnB suit une architecture à trois couches :
+**HBnB suit une architecture à trois couches :**
 
-Couche de Présentation (Services API) : Gère les interactions et requêtes des utilisateurs.
+📍**Couche de Présentation (Services API) :** Gère les interactions et requêtes des utilisateurs.
 
-Couche Logique Métier (Modèles & Façade) : Gère la logique applicative et le traitement des données.
+📍**Couche Logique Métier (Modèles & Façade) :** Gère la logique applicative et le traitement des données.
 
-Couche de Persistance (Accès à la Base de Données) : Responsable du stockage et de la récupération des données.
+📍**Couche de Persistance (Accès à la Base de Données) :** Responsable du stockage et de la récupération des données.
 
 ### 2.2 Diagramme de Package de Haut Niveau
 
@@ -56,23 +66,23 @@ La Couche Logique Métier comprend les modèles principaux représentant les dif
 
 ### 3.3 Explication
 
-User : Représente un utilisateur inscrit avec des détails d'authentification.
+📍**User :** Représente un utilisateur inscrit avec des détails d'authentification.
 
-Place : Représente une unité locative avec des détails tels que l'emplacement et le prix.
+📍**Place :** Représente une unité locative avec des détails tels que l'emplacement et le prix.
 
-Review : Contient les avis générés par les utilisateurs sur les lieux.
+📍**Review :** Contient les avis générés par les utilisateurs sur les lieux.
 
-Amenity : Représente les commodités supplémentaires disponibles dans un lieu.
+📍**Amenity :** Représente les commodités supplémentaires disponibles dans un lieu.
 
-Relations :
+#### Relations :
 
-Un utilisateur possède plusieurs lieux.
+- Un utilisateur possède plusieurs lieux.
 
-Un utilisateur rédige plusieurs avis.
+- Un utilisateur rédige plusieurs avis.
 
-Un lieu reçoit plusieurs avis.
+- Un lieu reçoit plusieurs avis.
 
-Un lieu possède plusieurs commodités.
+- Un lieu possède plusieurs commodités.
 
 ## 4. Flux d'Interaction des API
 
