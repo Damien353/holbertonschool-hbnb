@@ -57,7 +57,7 @@ La Couche Logique Métier comprend les modèles principaux représentant les dif
 
 ### 3.2 Diagramme de Classe pour la Logique Métier
 
-DIAGRAMME A METTRE ICI LOGIQUE METIER
+![diagramme_de_classe_720](https://github.com/user-attachments/assets/c2a4cae3-e2f7-4d4c-b7b4-16cbf3eba3c1)
 
 ### 3.3 Explication
 
@@ -102,7 +102,7 @@ Les diagrammes ci-dessous correspondent à chaque appel d'API :
 
 ### 4.2 Diagramme de séquence : Enregistrement d'utilisateur: 
 
-DIAGRAMME A INSERER ICI 
+![diagramme_user_register_720](https://github.com/user-attachments/assets/2934cbc4-e0d4-4354-b296-2163310736c9)
 
 #### 4.3 : Description du diagramme : 
 
@@ -138,7 +138,8 @@ Le diagramme montre ces interactions entre l'utilisateur, l'API et la classe Log
 
 ### 4.6 : diagramme de séquence: Création d'un logement:
 
-DIAGRAMME A METTRE ICI
+![diagramme_review_place_720](https://github.com/user-attachments/assets/4f147019-079e-45f4-bd54-d292c19dd7d9)
+
 
 #### 4.7: Description du diagramme :
 
@@ -173,7 +174,8 @@ L'API renvoie une réponse HTTP au client (l'utilisateur). Si la création de l'
 
 ### 4.9: Diagramme de séquence: créer une review
 
-DIAGRAMME A METTRe
+![review_sub_720](https://github.com/user-attachments/assets/50bd4309-3bbf-436e-bcfc-a8f63a208937)
+
 
 #### 4.10 : Description du diagramme:
 L'utilisateur envoie une revue pour un lieu spécifique, qui est validée, insérée dans la base de données, puis l'ID de la revue est retourné à l'utilisateur.
@@ -195,7 +197,10 @@ Si la revue est validée, elle retourne l'ID de la revue à l'API.
 Renvoie la réponse finale à l'utilisateur avec un statut de succès ou un message d'erreur en cas d'échec.
 
 ### 4.12: Diagramme de séquence: Récupération des lieux
-DIAGRAMME A METTRE
+
+![diagramme_liste_place_720](https://github.com/user-attachments/assets/f5c07774-6b1c-41f0-ba03-46285ff6b00f)
+
+
 #### 4:13 : Description du diagramme:
 L'utilisateur demande la liste des lieux dans une ville donnée, le système récupère et renvoie les lieux correspondant à la ville spécifiée.
 
@@ -223,4 +228,3 @@ Renvoie la réponse finale à l'utilisateur, avec la liste des lieux ou un messa
 
 Ce document sert de plan directeur pour le projet HBnB, garantissant la clarté de l'architecture et guidant l'implémentation. En suivant cette conception structurée, les développeurs peuvent assurer l'évolutivité, la lisibilité et la maintenabilité tout au long du cycle de vie du projet.
 
-![diagramme_user_register_720](https://github.com/user-attachments/assets/04664916-8c48-4e29-b8cb-345140fd771e)
