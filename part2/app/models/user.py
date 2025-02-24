@@ -14,7 +14,7 @@ class User(BaseModel):
         self.validate_name(first_name, last_name)
 
     def validate_email(self, email):
-        email_regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z2-7-.]+$)"
+        email_regex = r"([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+"
         if not re.match(email_regex, email):
             raise ValueError("Email invalide")
 
