@@ -4,6 +4,9 @@ from models.BaseModel import BaseModel
 
 
 class User(BaseModel):
+
+    existing_emails = []
+
     def __init__(self, first_name, last_name, email, is_admin=False):
         super().__init__()
         self.first_name = first_name
@@ -12,6 +15,8 @@ class User(BaseModel):
         self.is_admin = is_admin
         self.validate_email(email)
         self.validate_name(first_name, last_name)
+        self.check_email_uniqueness(email)
+        User.existing_emails.append(email)
 
     def validate_email(self, email):
         email_regex = r"([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+"
@@ -22,3 +27,7 @@ class User(BaseModel):
         if len(first_name) > 50 or len(last_name) > 50:
             raise ValueError(
                 "Le nom ou prénom ne doit pas dépasser 50 caractères.")
+
+    def check_email_uniqueness(self, email):
+        if email in User.existing_emails:
+            raise ValueError(f"L'email {email} est déjà utilisé.")
