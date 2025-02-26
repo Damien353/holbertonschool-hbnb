@@ -13,6 +13,9 @@ class Review(BaseModel):
         self.created_at = datetime.now()
         self.updated_at = datetime.now()
 
+        # Ajout du place_id pour faciliter la récupération des avis par lieu
+        self.place_id = place.id if place else None  # Récupération de l'ID du lieu, si un lieu est fourni
+        
         # Validation des attributs
         self.validate()
 

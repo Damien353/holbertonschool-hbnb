@@ -69,7 +69,7 @@ class HBnBFacade:
         """Récupère tous les avis pour un lieu spécifique."""
         reviews = self.review_repo.get_all()
         # Filtre les avis pour ne garder que ceux liés au lieu spécifié
-        return [review for review in reviews if review.place_id == place_id]
+        return [review.to_dict() for review in reviews if review.place_id == place_id]
     
     def update_review(self, review_id, review_data):
         """Met à jour un avis existant."""
