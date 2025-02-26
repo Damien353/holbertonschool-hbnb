@@ -1,6 +1,6 @@
-from app.persistence.repository import InMemoryRepository
-from app.models.user import User
-from app.models.amenity import Amenity
+from persistence.repository import InMemoryRepository
+from models.user import User
+from models.amenity import Amenity
 
 
 class HBnBFacade:
