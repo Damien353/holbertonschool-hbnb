@@ -35,28 +35,26 @@ class HBnBFacade:
         self.user_repo.update(user)
         return user
 
-    def get_place(self, place_id):
-        pass
-
     def create_amenity(self, amenity_data):
-        """Create a new amenity."""
+        if 'name' not in amenity_data:
+            raise ValueError("Missing 'name' field")
+
+        # Create a new amenity and save it
         amenity = Amenity(**amenity_data)
         self.amenity_repo.add(amenity)
         return amenity
 
     def get_amenity(self, amenity_id):
-        """Retrieve a single amenity by its ID."""
         return self.amenity_repo.get(amenity_id)
 
     def get_all_amenities(self):
-        """Retrieve all amenities."""
-        return self.amenity_repo.get_all()
+        return self.amenity_repo.get_all() or []
 
     def update_amenity(self, amenity_id, amenity_data):
-        """Update an existing amenity."""
         amenity = self.amenity_repo.get(amenity_id)
-        if amenity:
-            amenity.update(amenity_data)
-            self.amenity_repo.update(amenity)
-            return amenity
-        return None
+        if not amenity:
+            return None
+        for key, value in amenity_data.items():
+            setattr(amenity, key, value)
+        self.amenity_repo.update(amenity)
+        return amenity
