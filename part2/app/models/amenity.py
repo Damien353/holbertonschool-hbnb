@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from models.BaseModel import BaseModel
+from app.models.BaseModel import BaseModel
 
 
 class Amenity(BaseModel):
