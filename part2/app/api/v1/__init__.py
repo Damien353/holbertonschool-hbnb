@@ -1,5 +1,5 @@
 from flask_restx import Api
-from app.api.v1.reviews import api as reviews_api  # Importation de ton namespace de reviews
+from app.api.v1.reviews import api as reviews_api  # Importation de namespace de reviews
 
 def create_app():
     app = Flask(__name__)
