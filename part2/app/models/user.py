@@ -31,3 +31,11 @@ class User(BaseModel):
     def check_email_uniqueness(self, email):
         if email in User.existing_emails:
             raise ValueError(f"L'email {email} est déjà utilisé.")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "email": self.email
+        }

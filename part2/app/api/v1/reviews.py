@@ -22,14 +22,15 @@ class ReviewList(Resource):
         review_data = api.payload
         review = facade.create_review(review_data)
         if review:
-            return review, 201
+            return review.to_dict(), 201  # Sérialisation ici
         return {'message': 'Invalid data'}, 400
 
     @api.response(200, 'List of reviews retrieved successfully')
     def get(self):
         """Retrieve a list of all reviews"""
         reviews = facade.get_all_reviews()
-        return reviews, 200
+        # Sérialisation de tous les avis
+        return [review.to_dict() for review in reviews], 200
 
 
 @api.route('/<review_id>')
@@ -40,7 +41,7 @@ class ReviewResource(Resource):
         """Get review details by ID"""
         review = facade.get_review(review_id)
         if review:
-            return review, 200
+            return review.to_dict(), 200  # Sérialisation avant de renvoyer
         return {'message': 'Review not found'}, 404
 
     @api.expect(review_model)
@@ -75,5 +76,5 @@ class PlaceReviewList(Resource):
         if not reviews:
             return {"message": "Place not found"}, 404
 
-        # Si les avis existent, on les retourne
-        return reviews, 200
+        # Sérialiser les avis avant de les retourner
+        return [review.to_dict() for review in reviews], 200

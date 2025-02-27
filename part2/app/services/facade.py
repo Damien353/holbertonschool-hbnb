@@ -97,21 +97,27 @@ class HBnBFacade:
 
     def create_review(self, review_data):
         """Crée un avis après validation des données."""
-        # Validation : vérifier que l'utilisateur et le lieu existent
         user = self.user_repo.get(review_data['user_id'])
         place = self.place_repo.get(review_data['place_id'])
 
         if not user or not place:
-            return None  # Si l'utilisateur ou le lieu n'existent pas, retournera None
+            return None
 
-        # Validation de la note
         rating = review_data.get('rating')
         if not rating or rating < 1 or rating > 5:
-            return None  # La note doit être entre 1 et 5
+            return None
 
-        # Création de l'avis
-        review = Review(**review_data)
+        # Crée l'objet Review au lieu de retourner un dictionnaire
+        review = Review(
+            text=review_data["text"],
+            rating=review_data["rating"],
+            place=place,
+            user=user
+        )
+
         self.review_repo.add(review)
+
+        # Retourne l'objet Review, pas un dictionnaire
         return review
 
     def get_review(self, review_id):
@@ -137,7 +143,7 @@ class HBnBFacade:
         # Mise à jour des données de l'avis
         for key, value in review_data.items():
             setattr(review, key, value)
-        self.review_repo.update(review)
+        self.review_repo.update(review.id, review_data)
         return review
 
     def delete_review(self, review_id):
@@ -145,5 +151,5 @@ class HBnBFacade:
         review = self.review_repo.get(review_id)
         if not review:
             return None  # Si l'avis n'existe pas, retournera None
-        self.review_repo.delete(review)
+        self.review_repo.delete(review.id)
         return review

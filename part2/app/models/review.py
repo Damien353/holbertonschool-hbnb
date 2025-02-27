@@ -11,7 +11,6 @@ class Review(BaseModel):
         self.rating = rating
         self.place = place
         self.user = user
-
         self.validate()
 
     def validate(self):
@@ -25,6 +24,15 @@ class Review(BaseModel):
             raise ValueError("Place must be a valid Place instance")
         if not isinstance(self.user, User):
             raise ValueError("User must be a valid User instance")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "text": self.text,
+            "rating": self.rating,
+            "user_id": self.user.id,  # Utiliser seulement l'ID de l'utilisateur
+            "place_id": self.place.id  # Utiliser seulement l'ID du lieu
+        }
 
     def update_review(self, new_text, new_rating):
         """Met à jour la review et sauvegarde les modifications"""
