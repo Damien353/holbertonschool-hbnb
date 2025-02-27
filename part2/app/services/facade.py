@@ -39,95 +39,37 @@ class HBnBFacade:
         # Retourner l'utilisateur mis à jour
         return self.user_repo.get(user_id)
 
-    def create_place(self, place_data, user_repository):
-        owner_id = place_data.get("owner_id")
-        if not owner_id or not isinstance(owner_id, str) or not owner_id.strip():
-            raise ValueError("L'ID du propriétaire est invalide")
+    def create_place(self, place_data):
+        """Crée un lieu et retourne l'objet du lieu créé"""
+        owner_id = place_data.get('owner_id')
 
-        # Debug: Affiche l'ID du propriétaire
-        print(f"Vérification de l'utilisateur avec ID: {owner_id}")
+        # Vérifier si l'utilisateur existe
+        owner = self.get_user(owner_id)  # Assurer que l'utilisateur existe
+        if not owner:
+            return {"error": "Owner not found"}, 404
 
-        # Vérifie si l'utilisateur existe
-        owner = user_repository.get(owner_id)
-        if owner is None:
-            raise ValueError(
-                "L'utilisateur spécifié comme propriétaire existe pas")
-
-    # Créer la place
-        place = Place(
-            title=place_data["title"],
-            description=place_data["description"],
-            price_per_night=place_data["price_per_night"],
-            latitude=place_data["latitude"],
-            longitude=place_data["longitude"],
-            number_rooms=place_data["number_rooms"],
-            owner_id=owner_id,
-            user_repository=user_repository
-        )
-
+        # Ajouter le repository utilisateur à la création du lieu
+        place = Place(user_repository=self.user_repo, **place_data)
         self.place_repo.add(place)
         return place
 
     def get_place(self, place_id):
+        """Récupère un lieu par ID"""
         return self.place_repo.get(place_id)
 
-    def update_place(self, place_id, place_data):
-        place = self.place_repo.get(place_id)
-        if not place:
-            return None  # si la place existe pas
-        for key, value in place_data.items():
-            if hasattr(place, key):  # verification si l'attribut existe avant modification
-                setattr(place, key, value)
-        # sauvegarde la mise à jour
-        self.place_repo.update(place_id, place_data)
-        return place  # retourn le lieu mis à jour
-
-    def search_places(self, criteria):
-        places = self.place_repo.get_all()  # recuperer toutes les places
-
-        # filtrage en fonction des critères
-        if "max_price" in criteria:
-            places = [p for p in places if p.price_per_night <=
-                      criteria["max_price"]]
-        if "min_rooms" in criteria:
-            places = [p for p in places if p.number_rooms >=
-                      criteria["min_rooms"]]
-        if "latitude" in criteria and "longitude" in criteria:
-            tolerance = criteria.get("tolerance", 0.1)
-            places = [p for p in places if abs(p.latitude - criteria["latitude"]) <= tolerance
-                      and abs(p.longitude - criteria["longitude"]) <= tolerance]
-        return places
-
-    def delete_place(self, place_id):
-        place = self.place_repo.get(place_id)
-        if not place:
-            return None
-        self.place_repo.delete(place_id)
-        return True  # suppression réussie
-
-    def add_review_to_place(self, place_id, review_data):
-        place = self.place_repo.get(place_id)
-        if not place:
-            raise ValueError("Lieu introuvable")
-        user_id = review_data.get("user_id")
-        user = self.user_repo.get(user_id)
-        if not user:
-            raise ValueError("Utilisateur introuvable.")
-        if "rating" not in review_data or not (1 <= review_data["rating"] <= 5):
-            raise ValueError("La note doit être comprise entre 1 et 5.")
-
-        review = Review(
-            text=review_data["test"],
-            rating=review_data["rating"],
-            user_id=user_id
-        )
-
-        place.add_review(review)
-        self.place_repo.update(place_id, place)
-        return review
-
     def get_all_places(self):
+        """Récupère tous les lieux"""
         return self.place_repo.get_all()
+
+    def update_place(self, place_id, place_data):
+        """Met à jour un lieu par ID"""
+        place = self.get_place(place_id)
+        if not place:
+            return None  # Si le lieu n'existe pas
+
+        # Mettre à jour les informations du lieu
+        self.place_repo.update(place_id, place_data)
+        return self.place_repo.get(place_id)
 
     def create_amenity(self, amenity_data):
         if 'name' not in amenity_data:

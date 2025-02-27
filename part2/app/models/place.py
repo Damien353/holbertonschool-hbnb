@@ -39,3 +39,18 @@ class Place(BaseModel):
     def add_amenity(self, amenity):
         """Add an amenity to the place."""
         self.amenities.append(amenity)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "price": self.price,
+            "latitude": self.latitude,
+            "longitude": self.longitude,
+            "owner_id": self.owner.id if self.owner else None,
+            # si les reviews ont aussi un to_dict()
+            "reviews": [review.to_dict() for review in self.reviews],
+            # idem pour les amenities
+            "amenities": [amenity.to_dict() for amenity in self.amenities]
+        }
