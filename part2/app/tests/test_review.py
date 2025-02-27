@@ -1,42 +1,61 @@
 import unittest
-from datetime import datetime
-from models.user import User
 from models.place import Place
+from models.user import User
+from persistence.repository import InMemoryRepository
+import time
 from models.review import Review
-from app import app  # Assure-toi d'importer ton application Flask
-import json
 
-class TestReviewAPI(unittest.TestCase):
+@classmethod
+def setUpClass(cls):
+     """Setup d'application avant de démarrer les tests"""
+cls.client = app.test_client()
 
-    @classmethod
-    def setUpClass(cls):
-        """Setup d'application avant de démarrer les tests"""
-        cls.client = app.test_client()
-
-    def test_review_creation_valid(self):
+def test_review_creation_valid(self):
         # Créer des objets fictifs pour Place et User
         place = Place(id="place_1", name="Test Place")
         user = User(id="user_1", name="Test User")
 
-        # Créer une Review valide
-        review = Review(text="Super endroit", rating=4, place=place, user=user)
+class TestReview(unittest.TestCase):
+    def setUp(self):
+        """Initialisation avant chaque test"""
+        self.user_repository = InMemoryRepository()
+        self.user = User(first_name="Alice", last_name="Doe",
+                         email="alice@example.com")
+        # Ajout de l'utilisateur dans le repository
+        self.user_repository.add(self.user)
 
-        # Vérifier que l'objet Review a bien été créé avec les bons attributs
-        self.assertEqual(review.text, "Super endroit")
-        self.assertEqual(review.rating, 4)
-        self.assertEqual(review.place.id, "place_1")
-        self.assertEqual(review.user.id, "user_1")
-        self.assertTrue(isinstance(review.created_at, datetime))
-        self.assertTrue(isinstance(review.updated_at, datetime))
+        self.place = Place(
+            title="Beautiful House",
+            description="A very nice place.",
+            price=120,
+            latitude=48.8566,
+            longitude=2.3522,
+            owner_id=self.user.id,
+            user_repository=self.user_repository
+        )
+
+        self.review = Review(text="Amazing experience!",
+                             rating=5, place=self.place, user=self.user)
+
+    def test_review_creation(self):
+        """Test que la review est bien créée avec les bonnes valeurs"""
+        self.assertEqual(self.review.text, "Amazing experience!")
+        self.assertEqual(self.review.rating, 5)
+        self.assertEqual(self.review.place, self.place)
+        self.assertEqual(self.review.user, self.user)
 
     def test_invalid_rating(self):
-        # Créer des objets fictifs pour Place et User
-        place = Place(id="place_1", name="Test Place")
-        user = User(id="user_1", name="Test User")
+        """Test que la validation de la note fonctionne correctement"""
+        with self.assertRaises(ValueError):
+            Review(text="Too high rating", rating=6,
+                   place=self.place, user=self.user)
+        with self.assertRaises(ValueError):
+            Review(text="Too low rating", rating=0,
+                   place=self.place, user=self.user)
 
         # Tester une review avec un rating invalide (en dehors de la plage [1, 5])
         with self.assertRaises(ValueError) as context:
-            review = Review(text="Mauvais endroit", rating=6, place=place, user=user)
+            review = Review(text="Mauvais endroit", rating=6, place=self.place, user=self.user)
         
         self.assertEqual(str(context.exception), "Rating must be between 1 and 5")
 
@@ -140,6 +159,37 @@ class TestReviewAPI(unittest.TestCase):
         response_not_found = self.client.get(f'/api/v1/places/{invalid_place_id}/reviews')
         self.assertEqual(response_not_found.status_code, 404)
         self.assertEqual(response_not_found.json['message'], 'Place not found')
+
+    def test_empty_text(self):
+        """Test que le texte de la review ne peut pas être vide"""
+        with self.assertRaises(ValueError):
+            Review(text="", rating=3, place=self.place, user=self.user)
+        with self.assertRaises(ValueError):
+            Review(text="   ", rating=3, place=self.place, user=self.user)
+
+    def test_invalid_place_or_user(self):
+        """Test qu'une review sans place ou user valide lève une erreur"""
+        with self.assertRaises(ValueError):
+            Review(text="No place", rating=3, place=None, user=self.user)
+        with self.assertRaises(ValueError):
+            Review(text="No user", rating=3, place=self.place, user=None)
+        with self.assertRaises(ValueError):
+            Review(text="Invalid place", rating=3,
+                   place="NotAPlace", user=self.user)
+        with self.assertRaises(ValueError):
+            Review(text="Invalid user", rating=3,
+                   place=self.place, user="NotAUser")
+
+    def test_update_review(self):
+        """Test la mise à jour d'une review"""
+        time.sleep(1)  # Pause pour observer le changement de timestamp
+        old_updated_at = self.review.updated_at
+        self.review.update_review("Updated review", 4)
+
+        self.assertEqual(self.review.text, "Updated review")
+        self.assertEqual(self.review.rating, 4)
+        # Vérifie que updated_at a bien changé
+        self.assertGreater(self.review.updated_at, old_updated_at)
 
 if __name__ == '__main__':
     unittest.main()
