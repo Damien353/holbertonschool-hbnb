@@ -92,7 +92,7 @@ class HBnBFacade:
             return None
         for key, value in amenity_data.items():
             setattr(amenity, key, value)
-        self.amenity_repo.update(amenity)
+        self.amenity_repo.update(amenity_id, amenity_data)
         return amenity
 
     def create_review(self, review_data):
