@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from models.BaseModel import BaseModel
+from app.models.BaseModel import BaseModel
 
 
 class Amenity(BaseModel):
@@ -8,13 +8,16 @@ class Amenity(BaseModel):
         if not isinstance(name, str) or not name.strip():
             raise ValueError("Le nom de l'amenity ne doit pas être vide.")
         if len(name) > 50:
-            raise ValueError("Le nom de l'amenity ne doit pas dépasser 50 caractères.")
-        
+            raise ValueError(
+                "Le nom de l'amenity ne doit pas dépasser 50 caractères.")
+
         # Validation de la description
         if not isinstance(description, str):
-            raise ValueError("La description doit être une chaîne de caractères.")
+            raise ValueError(
+                "La description doit être une chaîne de caractères.")
         if len(description) > 255:
-            raise ValueError("La description ne doit pas dépasser 255 caractères.")
+            raise ValueError(
+                "La description ne doit pas dépasser 255 caractères.")
 
         self.name = name
         self.description = description

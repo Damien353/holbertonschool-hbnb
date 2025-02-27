@@ -1,6 +1,6 @@
-from models.BaseModel import BaseModel
-from models.user import User
-from persistence.repository import InMemoryRepository
+from app.models.BaseModel import BaseModel
+from app.models.user import User
+from app.persistence.repository import InMemoryRepository
 
 
 class Place(BaseModel):

@@ -1,5 +1,5 @@
 from flask_restx import Namespace, Resource, fields
-from services import facade
+from app.services import facade
 from flask import request
 
 
@@ -53,7 +53,6 @@ class AmenityResource(Resource):
             return {'message': 'Amenity not found'}, 404
 
         return {'id': amenity.id, 'name': amenity.name}, 200
-
 
     @api.expect(amenity_model)
     @api.response(200, 'Amenity updated successfully')

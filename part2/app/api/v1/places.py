@@ -27,6 +27,7 @@ place_model = api.model('Place', {
     'amenities': fields.List(fields.String, required=True, description="List of amenities ID's")
 })
 
+
 @api.route('/')
 class PlaceList(Resource):
     @api.expect(place_model)
@@ -35,7 +36,7 @@ class PlaceList(Resource):
     def post(self):
         """Register a new place"""
         data = api.payload
-        result = facade.create_place(data)
+        result = facade.create_place(data, facade.user_repo)
         if "error" in result:
             return result, 400
         return result.__dict__, 201
@@ -45,6 +46,7 @@ class PlaceList(Resource):
         """Retrieve a list of all places"""
         places = facade.get_all_places()
         return [place.__dict__ for place in places], 200
+
 
 @api.route('/<place_id>')
 class PlaceResource(Resource):

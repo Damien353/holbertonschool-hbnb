@@ -1,6 +1,6 @@
-from models.BaseModel import BaseModel
-from models.place import Place
-from models.user import User
+from app.models.BaseModel import BaseModel
+from app.models.place import Place
+from app.models.user import User
 
 
 class Review(BaseModel):
