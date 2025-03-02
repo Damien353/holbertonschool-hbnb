@@ -24,7 +24,8 @@ place_model = api.model('Place', {
     'latitude': fields.Float(required=True, description='Latitude of the place'),
     'longitude': fields.Float(required=True, description='Longitude of the place'),
     'owner_id': fields.String(required=True, description='ID of the owner'),
-    'amenities': fields.List(fields.String, required=True, description="List of amenities ID's")
+    'amenities': fields.List(fields.String, required=True, description="List of amenities ID's"),
+    'reviews': fields.List(fields.String, description="List of reviews on the place")
 })
 
 
@@ -45,13 +46,16 @@ class PlaceList(Resource):
 
         # Appel à la méthode pour créer un lieu
         new_place = facade.create_place(place_data)
-        return new_place.to_dict(), 201  # Utilisation de to_dict()
+
+        # Utilisation de to_dict() pour retourner un dictionnaire de l'objet Place
+        return new_place.to_dict(), 201
 
     @api.response(200, 'List of places retrieved successfully')
     def get(self):
         """Retrieve a list of all places"""
         places = facade.get_all_places()
-        # Utilisation de to_dict()
+
+        # Utilisation de to_dict() pour retourner chaque place sous forme de dictionnaire
         return [place.to_dict() for place in places], 200
 
 
@@ -64,7 +68,7 @@ class PlaceResource(Resource):
         place = facade.get_place(place_id)
         if not place:
             return {"error": "Place not found"}, 404
-        return place.to_dict(), 200  # Utilisation de to_dict()
+        return place.to_dict(), 200
 
     @api.expect(place_model)
     @api.response(200, 'Place updated successfully')
@@ -78,4 +82,4 @@ class PlaceResource(Resource):
         if not updated_place:
             return {"error": "Place not found"}, 404
 
-        return updated_place.to_dict(), 200  # Utilisation de to_dict()
+        return updated_place.to_dict(), 200

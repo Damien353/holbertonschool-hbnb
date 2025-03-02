@@ -54,10 +54,9 @@ class HBnBFacade:
 
         # Ajouter les amenities au lieu
         for amenity_id in amenities_ids:
-            amenity = self.get_amenity(amenity_id)
+            amenity = self.get_amenity(amenity_id)  # Récupérer l'objet Amenity
             if amenity:
-                # Assurez-vous que cette méthode ajoute l'amenity
-                # Cette méthode ajoute les amenities au lieu
+                # Si l'amenity existe, l'ajouter à la place
                 new_place.add_amenity(amenity)
 
         self.place_repo.add(new_place)

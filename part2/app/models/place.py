@@ -1,10 +1,11 @@
 from app.models.BaseModel import BaseModel
 from app.models.user import User
 from app.persistence.repository import InMemoryRepository
+from app.models.amenity import Amenity
 
 
 class Place(BaseModel):
-    def __init__(self, title, description, price, latitude, longitude, owner_id, user_repository):
+    def __init__(self, title, description, price, latitude, longitude, owner_id, user_repository, amenities=None):
         super().__init__()
         self.title = title
         self.description = description
@@ -12,9 +13,10 @@ class Place(BaseModel):
         self.latitude = latitude
         self.longitude = longitude
         self.owner = None
-        self.reviews = []  # List to store related reviews
-        self.amenities = []  # List to store related amenities
+        self.reviews = []  # Liste pour stocker les avis associés
+        self.amenities = amenities if amenities is not None else []
 
+        # Vérification des contraintes de validation
         if not title or len(title) > 100:
             raise ValueError(
                 "Le titre doit être compris entre 1 et 100 caractères")
@@ -25,20 +27,27 @@ class Place(BaseModel):
         if not (-180.0 <= longitude <= 180.0):
             raise ValueError("La longitude doit être entre -180 et 180.")
 
-        # vérification que l'utilisateur existe dans le repository
+        # Vérification que l'utilisateur existe dans le repository
         owner = user_repository.get(owner_id)
         if owner is None:
             raise ValueError(
-                "L'utilisateur spécifié comme propriétaire existe pas")
+                "L'utilisateur spécifié comme propriétaire n'existe pas")
         self.owner = owner
 
     def add_review(self, review):
-        """Add a review to the place."""
-        self.reviews.append(review)
+        """Ajouter un avis à la place."""
+        if hasattr(review, 'to_dict'):
+            self.reviews.append(review)
+        else:
+            raise ValueError(
+                "L'objet review doit posséder une méthode to_dict()")
 
     def add_amenity(self, amenity):
-        """Add an amenity to the place."""
-        self.amenities.append(amenity)
+        """Ajouter un équipement à la place."""
+        if isinstance(amenity, Amenity):  # Vérifier si amenity est bien un objet Amenity
+            self.amenities.append(amenity)
+        else:
+            raise ValueError("L'objet amenity doit être de type Amenity")
 
     def to_dict(self):
         return {
@@ -49,8 +58,11 @@ class Place(BaseModel):
             "latitude": self.latitude,
             "longitude": self.longitude,
             "owner_id": self.owner.id if self.owner else None,
-            # si les reviews ont aussi un to_dict()
             "reviews": [review.to_dict() for review in self.reviews],
-            # idem pour les amenities
-            "amenities": [amenity.to_dict() for amenity in self.amenities]
+            "amenities": [
+                {"id": amenity.id, "name": amenity.name} if isinstance(amenity, Amenity)
+                # Si 'amenity' est un ID, on met à la fois l'ID et le nom
+                else {"id": amenity, "name": amenity}
+                for amenity in self.amenities
+            ]
         }
