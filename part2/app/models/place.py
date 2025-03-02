@@ -50,6 +50,17 @@ class Place(BaseModel):
             raise ValueError("L'objet amenity doit être de type Amenity")
 
     def to_dict(self):
+        # Crée une liste d'objets amenity avec id et name si ce sont des objets Amenity
+        amenities_data = [
+            {"id": amenity.id, "name": amenity.name} if isinstance(amenity, Amenity)
+            else None
+            for amenity in self.amenities
+        ]
+
+        # Filtre les `None` pour ne pas avoir d'éléments vides
+        amenities_data = [
+            amenity for amenity in amenities_data if amenity is not None]
+
         return {
             "id": self.id,
             "title": self.title,
@@ -59,10 +70,5 @@ class Place(BaseModel):
             "longitude": self.longitude,
             "owner_id": self.owner.id if self.owner else None,
             "reviews": [review.to_dict() for review in self.reviews],
-            "amenities": [
-                {"id": amenity.id, "name": amenity.name} if isinstance(amenity, Amenity)
-                # Si 'amenity' est un ID, on met à la fois l'ID et le nom
-                else {"id": amenity, "name": amenity}
-                for amenity in self.amenities
-            ]
+            "amenities": amenities_data
         }
