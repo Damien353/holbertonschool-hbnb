@@ -1,6 +1,6 @@
-from models.BaseModel import BaseModel
-from models.place import Place
-from models.user import User
+from app.models.BaseModel import BaseModel
+from app.models.place import Place
+from app.models.user import User
 
 
 class Review(BaseModel):
@@ -11,14 +11,10 @@ class Review(BaseModel):
         self.rating = rating
         self.place = place
         self.user = user
-
-        # Ajout du place_id pour faciliter la récupération des avis par lieu
-        self.place_id = place.id if place else None  # Récupération de l'ID du lieu, si un lieu est fourni
-        
-        # Validation des attributs
-        self.validate()
+        self.validate()  # Appel à la méthode de validation
 
     def validate(self):
+        """Valide les données de la review"""
         if not (1 <= self.rating <= 5):
             raise ValueError("Rating must be between 1 and 5")
 
@@ -30,9 +26,19 @@ class Review(BaseModel):
         if not isinstance(self.user, User):
             raise ValueError("User must be a valid User instance")
 
+    def to_dict(self):
+        """Retourne une représentation sous forme de dictionnaire"""
+        return {
+            "id": self.id,
+            "text": self.text,
+            "rating": self.rating,
+            "user_id": self.user.id,  # Utiliser l'ID de l'utilisateur
+            "place_id": self.place.id  # Utiliser l'ID du lieu
+        }
+
     def update_review(self, new_text, new_rating):
         """Met à jour la review et sauvegarde les modifications"""
         self.text = new_text
         self.rating = new_rating
-        self.validate()
-        self.save()  # Met à jour updated_at via BaseModel
+        self.validate()  # Revalidation après modification
+        self.save()  # Sauvegarde les modifications (avec mise à jour de `updated_at`)
