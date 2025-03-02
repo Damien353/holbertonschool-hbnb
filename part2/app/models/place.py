@@ -5,7 +5,7 @@ from app.models.amenity import Amenity
 
 
 class Place(BaseModel):
-    def __init__(self, title, description, price, latitude, longitude, owner_id, user_repository, amenities=None):
+    def __init__(self, title, description, price, latitude, longitude, owner_id, user_repository, amenity_repository, amenities=None):
         super().__init__()
         self.title = title
         self.description = description
@@ -33,6 +33,15 @@ class Place(BaseModel):
             raise ValueError(
                 "L'utilisateur spécifié comme propriétaire n'existe pas")
         self.owner = owner
+        self.amenities = []
+        if amenities:
+            for amenity_id in amenities:
+                amenity_obj = amenity_repository.get(amenity_id)
+                if amenity_obj:
+                    self.amenities.append(amenity_obj)
+                else:
+                    print(
+                        f"Attention : L'amenity avec l'ID {amenity_id} n'existe pas !")
 
     def add_review(self, review):
         """Ajouter un avis à la place."""
@@ -43,10 +52,10 @@ class Place(BaseModel):
                 "L'objet review doit posséder une méthode to_dict()")
 
     def add_amenity(self, amenity):
-        """Ajouter un équipement à la place."""
-        if isinstance(amenity, Amenity):  # Vérifier si amenity est bien un objet Amenity
+        """Ajouter un équipement à la place sans doublon."""
+        if isinstance(amenity, Amenity) and amenity not in self.amenities:
             self.amenities.append(amenity)
-        else:
+        elif not isinstance(amenity, Amenity):
             raise ValueError("L'objet amenity doit être de type Amenity")
 
     def to_dict(self):

@@ -50,7 +50,8 @@ class HBnBFacade:
             return {"error": "Owner not found"}, 404
 
         # Créer un objet Place
-        new_place = Place(user_repository=self.user_repo, **place_data)
+        new_place = Place(user_repository=self.user_repo,
+                          amenity_repository=self.amenity_repo, **place_data)
 
         # Ajouter les amenities au lieu
         for amenity_id in amenities_ids:
