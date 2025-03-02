@@ -83,3 +83,31 @@ class PlaceResource(Resource):
             return {"error": "Place not found"}, 404
 
         return updated_place.to_dict(), 200
+
+
+@api.route('/<place_id>/reviews')
+class PlaceReviewResource(Resource):
+    @api.expect(api.model('ReviewAssociation', {
+        'review_id': fields.String(required=True, description="Review ID to associate with the place")
+    }))
+    @api.response(200, "Review successfully added to the place")
+    @api.response(400, "Invalid input data")
+    @api.response(404, "Place or Review not found")
+    def put(self, place_id):
+        """Associer une review existante à un lieu"""
+        place = facade.get_place(place_id)
+        if not place:
+            return {"error": "Place not found"}, 404
+
+        data = api.payload
+        review = facade.get_review(data.get("review_id"))
+        if not review:
+            return {"error": "Review not found"}, 404
+
+        # Ajout de la review
+        try:
+            place.add_review(review)
+        except ValueError as e:
+            return {"error": str(e)}, 400
+
+        return place.to_dict(), 200
