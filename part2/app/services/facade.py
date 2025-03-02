@@ -42,16 +42,26 @@ class HBnBFacade:
     def create_place(self, place_data):
         """Crée un lieu et retourne l'objet du lieu créé"""
         owner_id = place_data.get('owner_id')
+        amenities_ids = place_data.get('amenities', [])
 
         # Vérifier si l'utilisateur existe
-        owner = self.get_user(owner_id)  # Assurer que l'utilisateur existe
+        owner = self.get_user(owner_id)
         if not owner:
             return {"error": "Owner not found"}, 404
 
-        # Ajouter le repository utilisateur à la création du lieu
-        place = Place(user_repository=self.user_repo, **place_data)
-        self.place_repo.add(place)
-        return place
+        # Créer un objet Place
+        new_place = Place(user_repository=self.user_repo, **place_data)
+
+        # Ajouter les amenities au lieu
+        for amenity_id in amenities_ids:
+            amenity = self.get_amenity(amenity_id)
+            if amenity:
+                # Assurez-vous que cette méthode ajoute l'amenity
+                # Cette méthode ajoute les amenities au lieu
+                new_place.add_amenity(amenity)
+
+        self.place_repo.add(new_place)
+        return new_place
 
     def get_place(self, place_id):
         """Récupère un lieu par ID"""
@@ -65,11 +75,39 @@ class HBnBFacade:
         """Met à jour un lieu par ID"""
         place = self.get_place(place_id)
         if not place:
-            return None  # Si le lieu n'existe pas
+            # Retourne une erreur si le lieu n'existe pas
+            return {"error": "Place not found"}, 404
 
-        # Mettre à jour les informations du lieu
+        # Vérification des amenities
+        for amenity_id in place_data.get('amenities', []):
+            amenity = self.get_amenity(amenity_id)
+            if not amenity:
+                # Si un amenity n'est pas trouvé
+                return {"error": f"Amenity {amenity_id} not found"}, 404
+
+        # Vérification des reviews
+        for review_id in place_data.get('reviews', []):
+            review = self.get_review(review_id)
+            if not review:
+                # Si un avis n'est pas trouvé
+                return {"error": f"Review {review_id} not found"}, 404
+
+        # Mise à jour du lieu
         self.place_repo.update(place_id, place_data)
         return self.place_repo.get(place_id)
+
+    def get_place_with_amenities(self, place_id):
+        """Récupère un lieu avec ses amenities sous forme d'objets"""
+        place = self.get_place(place_id)
+        if not place:
+            return None  # Si le lieu n'existe pas, retourne None
+
+        # Récupérer les amenities associés au lieu
+        amenities = place.get_amenities(self.amenity_repo)
+        place_dict = place.to_dict()
+        place_dict["amenities"] = [amenity.to_dict() for amenity in amenities]
+
+        return place_dict
 
     def create_amenity(self, amenity_data):
         if 'name' not in amenity_data:
