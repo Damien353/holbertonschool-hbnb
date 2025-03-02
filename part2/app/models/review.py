@@ -12,6 +12,10 @@ class Review(BaseModel):
         self.place = place
         self.user = user
 
+        # Ajout du place_id pour faciliter la récupération des avis par lieu
+        self.place_id = place.id if place else None  # Récupération de l'ID du lieu, si un lieu est fourni
+        
+        # Validation des attributs
         self.validate()
 
     def validate(self):
