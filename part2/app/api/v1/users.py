@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
+from app.models.user import User  # Importer le modèle User pour la validation
 
 api = Namespace('users', description='User operations')
 
@@ -15,13 +16,24 @@ user_model = api.model('User', {
 class UserList(Resource):
     @api.expect(user_model, validate=True)
     @api.response(201, 'User successfully created')
-    @api.response(400, 'Email already registered')
     @api.response(400, 'Invalid input data')
+    @api.response(400, 'Email already registered')
     def post(self):
         """Register a new user"""
         user_data = api.payload
 
-        # Simulate email uniqueness check (to be replaced by real validation with persistence)
+        # Vérifier que les champs ne sont pas vides
+        if not user_data['first_name'].strip() or not user_data['last_name'].strip():
+            return {'error': 'First name and last name cannot be empty'}, 400
+
+        # Vérifier que l'email est valide
+        try:
+            # Utilisation de la méthode validate_email
+            User.validate_email(None, user_data['email'])
+        except ValueError as e:
+            return {'error': str(e)}, 400
+
+        # Vérifier si l'email est déjà utilisé
         existing_user = facade.get_user_by_email(user_data['email'])
         if existing_user:
             return {'error': 'Email already registered'}, 400
@@ -33,8 +45,7 @@ class UserList(Resource):
     @api.response(404, 'No users found')
     def get(self):
         """Get the list of users"""
-        users = facade.get_all_users(
-        )  # Vous devez implémenter cette méthode pour récupérer la liste des utilisateurs
+        users = facade.get_all_users()
         if not users:
             return {'message': 'No users found'}, 404
         return [{'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name, 'email': user.email} for user in users], 200
@@ -57,22 +68,25 @@ class UserResource(Resource):
     @api.response(200, 'User successfully updated')
     def put(self, user_id):
         """Update user details"""
-        user_data = api.payload  # Récupérer les données envoyées dans la requête
+        user_data = api.payload
 
-        # Vérifier que les données envoyées sont valides (par exemple, les champs ne sont pas vides)
-        if not user_data.get('first_name') or not user_data.get('last_name') or not user_data.get('email'):
-            return {'error': 'Invalid input data'}, 400
+        # Vérifier que les champs ne sont pas vides
+        if not user_data['first_name'].strip() or not user_data['last_name'].strip():
+            return {'error': 'First name and last name cannot be empty'}, 400
 
-        # Appeler la fonction facade pour récupérer l'utilisateur à mettre à jour
+        # Vérifier que l'email est valide
+        try:
+            User.validate_email(None, user_data['email'])
+        except ValueError as e:
+            return {'error': str(e)}, 400
+
         user = facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404
 
-        # Appeler la fonction facade pour mettre à jour l'utilisateur
         updated_user = facade.update_user(user_id, user_data)
 
         if not updated_user:
             return {'error': 'Failed to update user'}, 500
 
-        # Retourner l'utilisateur mis à jour
         return {'id': updated_user.id, 'first_name': updated_user.first_name, 'last_name': updated_user.last_name, 'email': updated_user.email}, 200
