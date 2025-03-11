@@ -13,7 +13,15 @@ class HBnBFacade:
         self.amenity_repo = InMemoryRepository()
 
     def create_user(self, user_data):
-        user = User(**user_data)
+        # Crée un utilisateur avec un mot de passe haché
+        user = User(
+            first_name=user_data['first_name'],
+            last_name=user_data['last_name'],
+            email=user_data['email'],
+            # On passe le mot de passe pour le hachage
+            password=user_data['password']
+        )
+        # Ajouter l'utilisateur à la base de données ou à la mémoire
         self.user_repo.add(user)
         return user
 
@@ -21,11 +29,7 @@ class HBnBFacade:
         return self.user_repo.get(user_id)
 
     def get_user_by_email(self, email):
-        """Retourne un utilisateur correspondant à l'email donné, sinon None."""
-        for user in self.user_repo.get_all():
-            if user.email == email:
-                return user
-        return None
+        return self.user_repo.get_by_attribute('email', email)
 
     def get_all_users(self):
         """Récupère la liste de tous les utilisateurs."""
