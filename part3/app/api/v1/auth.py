@@ -1,7 +1,6 @@
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import create_access_token
-from app.services.facade import HBnBFacade
-facade = HBnBFacade()
+from app.services import facade
 
 api = Namespace('auth', description='Authentication operations')
 

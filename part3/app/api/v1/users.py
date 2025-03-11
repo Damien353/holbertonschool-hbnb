@@ -1,10 +1,7 @@
 from flask_restx import Namespace, Resource, fields
-from app.services.facade import HBnBFacade
-from app.models.user import User  # Importer le modèle User
-from flask_bcrypt import Bcrypt
+from app.services import facade
+from app.models.user import User
 
-bcrypt = Bcrypt()
-facade = HBnBFacade()
 api = Namespace('users', description='User operations')
 
 # Modèle utilisateur pour la documentation et la validation
@@ -12,7 +9,6 @@ user_model = api.model('User', {
     'first_name': fields.String(required=True, description='First name of the user'),
     'last_name': fields.String(required=True, description='Last name of the user'),
     'email': fields.String(required=True, description='Email of the user'),
-    # Ajout du champ password
     'password': fields.String(required=True, description='Password of the user')
 })
 
@@ -44,11 +40,7 @@ class UserList(Resource):
         if existing_user:
             return {'error': 'Email already registered'}, 400
 
-        # Hachage du mot de passe avant stockage
-        user_data['password'] = bcrypt.generate_password_hash(
-            user_data['password']).decode('utf-8')
-
-        # Création de l'utilisateur
+        # Créer l'utilisateur sans hasher le mot de passe ici
         new_user = facade.create_user(user_data)
 
         # Ne pas retourner le mot de passe dans la réponse
@@ -99,14 +91,23 @@ class UserResource(Resource):
         if not user:
             return {'error': 'User not found'}, 404
 
-        # Hacher le mot de passe s'il est fourni
-        if 'password' in user_data and user_data['password'].strip():
-            user_data['password'] = bcrypt.generate_password_hash(
-                user_data['password']).decode('utf-8')
-
         updated_user = facade.update_user(user_id, user_data)
 
         if not updated_user:
             return {'error': 'Failed to update user'}, 500
 
         return {'id': updated_user.id, 'first_name': updated_user.first_name, 'last_name': updated_user.last_name, 'email': updated_user.email}, 200
+
+
+@api.route('/email/<email>')
+class UserByEmailResource(Resource):
+    @api.response(200, 'User details retrieved successfully')
+    @api.response(404, 'User not found')
+    def get(self, email):
+        """Get user details by email"""
+        user = facade.get_user_by_email(email)
+        if not user:
+            return {'error': 'User not found'}, 404
+
+        # Ne pas inclure le mot de passe dans la réponse
+        return {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name, 'email': user.email}, 200
