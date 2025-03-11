@@ -4,10 +4,10 @@ from app.services import facade
 
 api = Namespace('auth', description='Authentication operations')
 
-# Model for input validation
+# Modèle pour la validation de l'entrée
 login_model = api.model('Login', {
-    'email': fields.String(required=True, description='User email'),
-    'password': fields.String(required=True, description='User password')
+    'email': fields.String(required=True, description='Email de l\'utilisateur'),
+    'password': fields.String(required=True, description='Mot de passe de l\'utilisateur')
 })
 
 
@@ -15,19 +15,19 @@ login_model = api.model('Login', {
 class Login(Resource):
     @api.expect(login_model)
     def post(self):
-        """Authenticate user and return a JWT token"""
-        credentials = api.payload  # Get the email and password from the request payload
+        """Authentifier l'utilisateur et retourner un token JWT"""
+        credentials = api.payload  # Récupérer l'email et le mot de passe du payload
 
-        # Step 1: Retrieve the user based on the provided email
+        # Étape 1 : Récupérer l'utilisateur en fonction de l'email
         user = facade.get_user_by_email(credentials['email'])
 
-        # Step 2: Check if the user exists and the password is correct
+        # Étape 2 : Vérifier si l'utilisateur existe et si le mot de passe est correct
         if not user or not user.verify_password(credentials['password']):
-            return {'error': 'Invalid credentials'}, 401
+            return {'error': 'Identifiants invalides'}, 401
 
-        # Step 3: Create a JWT token with the user's id and is_admin flag
-        access_token = create_access_token(
-            identity={'id': str(user.id), 'is_admin': user.is_admin})
+        # Étape 3 : Créer un token JWT avec l'ID de l'utilisateur et le flag is_admin
+        access_token = create_access_token(identity=str(
+            user.id), additional_claims={"is_admin": user.is_admin})
 
-        # Step 4: Return the JWT token to the client
+        # Étape 4 : Retourner le token JWT au client
         return {'access_token': access_token}, 200
