@@ -12,7 +12,7 @@ class Place(BaseModel):
         self.price = price
         self.latitude = latitude
         self.longitude = longitude
-        self.owner = None
+        self.owner_id = owner_id
         self.reviews = []  # Liste pour stocker les avis associés
         self.amenities = amenities if amenities is not None else []
 
@@ -77,7 +77,7 @@ class Place(BaseModel):
             "price": self.price,
             "latitude": self.latitude,
             "longitude": self.longitude,
-            "owner_id": self.owner.id if self.owner else None,
+            "owner_id": self.owner_id if self.owner else None,
             "reviews": [review.to_dict() for review in self.reviews],
             "amenities": amenities_data
         }

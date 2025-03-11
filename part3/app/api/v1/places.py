@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 api = Namespace('places', description='Place operations')
 
@@ -34,20 +35,17 @@ class PlaceList(Resource):
     @api.expect(place_model)
     @api.response(201, 'Place successfully created')
     @api.response(400, 'Invalid input data')
+    @jwt_required()
     def post(self):
-        """Register a new place"""
+        """Register a new place (authenticated users only)"""
         place_data = api.payload
-        owner_id = place_data.get('owner_id')
-
-        # Vérifier si l'utilisateur existe
-        owner = facade.get_user(owner_id)
-        if not owner:
-            return {"error": "Owner not found"}, 404
+        current_user_id = get_jwt_identity()  # Récupère l'ID de l'utilisateur connecté
+        # Associe l'utilisateur comme propriétaire
+        place_data['owner_id'] = current_user_id
 
         # Appel à la méthode pour créer un lieu
         new_place = facade.create_place(place_data)
 
-        # Utilisation de to_dict() pour retourner un dictionnaire de l'objet Place
         return new_place.to_dict(), 201
 
     @api.response(200, 'List of places retrieved successfully')
@@ -70,17 +68,30 @@ class PlaceResource(Resource):
             return {"error": "Place not found"}, 404
         return place.to_dict(), 200
 
+    @jwt_required()
     @api.expect(place_model)
     @api.response(200, 'Place updated successfully')
     @api.response(404, 'Place not found')
-    @api.response(400, 'Invalid input data')
+    @api.response(403, 'Unauthorized action')
     def put(self, place_id):
         """Update a place's information"""
-        place_data = api.payload
-        updated_place = facade.update_place(place_id, place_data)
+        # Récupérer l'utilisateur actuel via le JWT
+        current_user_id = get_jwt_identity()
 
-        if not updated_place:
+        # Récupérer les données envoyées dans la requête
+        place_data = api.payload
+
+        # Vérifier si le lieu existe
+        place = facade.get_place(place_id)
+        if not place:
             return {"error": "Place not found"}, 404
+
+        # Vérifier que l'utilisateur est bien le propriétaire du lieu
+        if place.owner_id != current_user_id:
+            return {"error": "Unauthorized action"}, 403
+
+        # Mettre à jour le lieu avec les nouvelles données
+        updated_place = facade.update_place(place_id, place_data)
 
         return updated_place.to_dict(), 200
 
