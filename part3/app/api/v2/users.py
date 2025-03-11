@@ -1,14 +1,19 @@
 from flask_restx import Namespace, Resource, fields
-from app.services import facade
-from app.models.user import User  # Importer le modèle User pour la validation
+from app.services.facade import HBnBFacade
+from app.models.user import User  # Importer le modèle User
+from flask_bcrypt import Bcrypt
 
+bcrypt = Bcrypt()
+facade = HBnBFacade()
 api = Namespace('users', description='User operations')
 
-# Define the user model for input validation and documentation
+# Modèle utilisateur pour la documentation et la validation
 user_model = api.model('User', {
     'first_name': fields.String(required=True, description='First name of the user'),
     'last_name': fields.String(required=True, description='Last name of the user'),
-    'email': fields.String(required=True, description='Email of the user')
+    'email': fields.String(required=True, description='Email of the user'),
+    # Ajout du champ password
+    'password': fields.String(required=True, description='Password of the user')
 })
 
 
@@ -25,10 +30,11 @@ class UserList(Resource):
         # Vérifier que les champs ne sont pas vides
         if not user_data['first_name'].strip() or not user_data['last_name'].strip():
             return {'error': 'First name and last name cannot be empty'}, 400
+        if not user_data['password'].strip():
+            return {'error': 'Password cannot be empty'}, 400
 
         # Vérifier que l'email est valide
         try:
-            # Utilisation de la méthode validate_email
             User.validate_email(None, user_data['email'])
         except ValueError as e:
             return {'error': str(e)}, 400
@@ -38,8 +44,15 @@ class UserList(Resource):
         if existing_user:
             return {'error': 'Email already registered'}, 400
 
+        # Hachage du mot de passe avant stockage
+        user_data['password'] = bcrypt.generate_password_hash(
+            user_data['password']).decode('utf-8')
+
+        # Création de l'utilisateur
         new_user = facade.create_user(user_data)
-        return {'id': new_user.id, 'first_name': new_user.first_name, 'last_name': new_user.last_name, 'email': new_user.email}, 201
+
+        # Ne pas retourner le mot de passe dans la réponse
+        return {'id': new_user.id, 'message': 'User successfully created'}, 201
 
     @api.response(200, 'List of users retrieved successfully')
     @api.response(404, 'No users found')
@@ -60,6 +73,8 @@ class UserResource(Resource):
         user = facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404
+
+        # Ne pas inclure le mot de passe dans la réponse
         return {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name, 'email': user.email}, 200
 
     @api.expect(user_model, validate=True)
@@ -83,6 +98,11 @@ class UserResource(Resource):
         user = facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404
+
+        # Hacher le mot de passe s'il est fourni
+        if 'password' in user_data and user_data['password'].strip():
+            user_data['password'] = bcrypt.generate_password_hash(
+                user_data['password']).decode('utf-8')
 
         updated_user = facade.update_user(user_id, user_data)
 

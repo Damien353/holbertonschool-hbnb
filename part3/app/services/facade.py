@@ -21,7 +21,11 @@ class HBnBFacade:
         return self.user_repo.get(user_id)
 
     def get_user_by_email(self, email):
-        return self.user_repo.get_by_attribute('email', email)
+        """Retourne un utilisateur correspondant à l'email donné, sinon None."""
+        for user in self.user_repo.get_all():
+            if user.email == email:
+                return user
+        return None
 
     def get_all_users(self):
         """Récupère la liste de tous les utilisateurs."""
