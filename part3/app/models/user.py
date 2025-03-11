@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 import re
 from app.models.BaseModel import BaseModel
-import bcrypt
+from flask_bcrypt import Bcrypt
+
+bcrypt = Bcrypt()
 
 
 class User(BaseModel):
@@ -35,13 +37,12 @@ class User(BaseModel):
                 "Le nom ou prénom ne doit pas dépasser 50 caractères.")
 
     def hash_password(self, password):
-        """Hache le mot de passe avant de le stocker."""
-        self.password = bcrypt.hashpw(password.encode(
-            'utf-8'), bcrypt.gensalt()).decode('utf-8')
+        """Hashes the password before storing it."""
+        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
 
     def verify_password(self, password):
-        """Vérifie si le mot de passe fourni correspond au mot de passe haché."""
-        return bcrypt.checkpw(password.encode('utf-8'), self.password.encode('utf-8'))
+        """Verifies if the provided password matches the hashed password."""
+        return bcrypt.check_password_hash(self.password, password)
 
     def check_email_uniqueness(self, email):
         if email in User.existing_emails:
