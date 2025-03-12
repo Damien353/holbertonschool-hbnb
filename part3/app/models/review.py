@@ -42,3 +42,11 @@ class Review(BaseModel):
         self.rating = new_rating
         self.validate()  # Revalidation après modification
         self.save()  # Sauvegarde les modifications (avec mise à jour de `updated_at`)
+
+    @property
+    def place_id(self):
+        return self.place.id  # Retourne l'ID du lieu
+
+    @property
+    def user_id(self):
+        return self.user.id  # Retourne l'ID de l'utilisateur
