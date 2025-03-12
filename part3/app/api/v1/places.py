@@ -43,6 +43,9 @@ class PlaceList(Resource):
         # Associe l'utilisateur comme propriétaire
         place_data['owner_id'] = current_user_id
 
+        if place_data.get('price', 0) <= 0:
+            return {"error": "Le prix doit être positif"}, 400
+
         # Appel à la méthode pour créer un lieu
         new_place = facade.create_place(place_data)
 
@@ -89,6 +92,9 @@ class PlaceResource(Resource):
         # Vérifier que l'utilisateur est bien le propriétaire du lieu
         if place.owner_id != current_user_id:
             return {"error": "Unauthorized action"}, 403
+
+        if place_data.get('price', 0) <= 0:
+            return {"error": "Le prix doit être positif"}, 400
 
         # Mettre à jour le lieu avec les nouvelles données
         updated_place = facade.update_place(place_id, place_data)
