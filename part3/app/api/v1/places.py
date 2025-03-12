@@ -49,6 +49,9 @@ class PlaceList(Resource):
         # Appel à la méthode pour créer un lieu
         new_place = facade.create_place(place_data)
 
+        if isinstance(new_place, tuple):  # Si create_place() a retourné une erreur
+            return new_place
+
         return new_place.to_dict(), 201
 
     @api.response(200, 'List of places retrieved successfully')

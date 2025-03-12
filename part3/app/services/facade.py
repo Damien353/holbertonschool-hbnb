@@ -57,18 +57,26 @@ class HBnBFacade:
         if not owner:
             return {"error": "Owner not found"}, 404
 
-        # Créer un objet Place
+        place_data.pop("reviews", None)
+
+        valid_amenities = []
+        for amenity_id in amenities_ids:
+            amenity = self.get_amenity(amenity_id)  # Récupérer l'objet Amenity
+            if not amenity:
+                return {"error": f"Amenity {amenity_id} not found"}, 400
+            valid_amenities.append(amenity)
+
+        # Créer un objet Place sans reviews
         new_place = Place(user_repository=self.user_repo,
                           amenity_repository=self.amenity_repo, **place_data)
 
-        # Ajouter les amenities au lieu
-        for amenity_id in amenities_ids:
-            amenity = self.get_amenity(amenity_id)  # Récupérer l'objet Amenity
-            if amenity:
-                # Si l'amenity existe, l'ajouter à la place
-                new_place.add_amenity(amenity)
+        # Ajouter les amenities valides
+        for amenity in valid_amenities:
+            new_place.add_amenity(amenity)
 
+        # Enregistrer le lieu
         self.place_repo.add(new_place)
+
         return new_place
 
     def get_place(self, place_id):
