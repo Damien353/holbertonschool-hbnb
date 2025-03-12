@@ -1,4 +1,5 @@
 from flask_restx import Namespace, Resource, fields
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services import facade
 from app.models.user import User
 
@@ -58,45 +59,76 @@ class UserList(Resource):
 
 @api.route('/<user_id>')
 class UserResource(Resource):
+    @jwt_required()  # Vérifie que l'utilisateur est authentifié
     @api.response(200, 'User details retrieved successfully')
     @api.response(404, 'User not found')
     def get(self, user_id):
-        """Get user details by ID"""
+        """Obtenir les détails d'un utilisateur par ID"""
         user = facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404
 
         # Ne pas inclure le mot de passe dans la réponse
-        return {'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name, 'email': user.email}, 200
+        return {
+            'id': user.id,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email
+        }, 200
 
-    @api.expect(user_model, validate=True)
+    @jwt_required()  # Vérifie que l'utilisateur est authentifié
+    # Validation optionnelle des champs
+    @api.expect(user_model, validate=False)
     @api.response(400, 'Invalid input data')
     @api.response(404, 'User not found')
+    @api.response(403, 'Unauthorized action')
+    @api.response(400, 'You cannot modify email or password')
     @api.response(200, 'User successfully updated')
     def put(self, user_id):
-        """Update user details"""
-        user_data = api.payload
+        """Mettre à jour les détails d'un utilisateur"""
+        # Vérifier l'authentification et l'identité
+        # Récupère l'identité de l'utilisateur authentifié
+        current_user = get_jwt_identity()
 
-        # Vérifier que les champs ne sont pas vides
-        if not user_data['first_name'].strip() or not user_data['last_name'].strip():
-            return {'error': 'First name and last name cannot be empty'}, 400
+        # Si current_user est une chaîne contenant l'ID, utilisez-le directement
+        if current_user != str(user_id):
+            # L'utilisateur ne peut pas modifier un autre utilisateur
+            return {'message': 'Unauthorized action'}, 403
 
-        # Vérifier que l'email est valide
-        try:
-            User.validate_email(None, user_data['email'])
-        except ValueError as e:
-            return {'error': str(e)}, 400
+        user_data = api.payload  # Données envoyées dans la requête PUT
 
+        # Initialisation d'un dictionnaire pour les champs à mettre à jour
+        update_fields = {}
+
+        # Si `first_name` est présent, l'ajouter à `update_fields`
+        if 'first_name' in user_data and user_data['first_name'].strip():
+            update_fields['first_name'] = user_data['first_name'].strip()
+
+        # Si `last_name` est présent, l'ajouter à `update_fields`
+        if 'last_name' in user_data and user_data['last_name'].strip():
+            update_fields['last_name'] = user_data['last_name'].strip()
+
+        # Vérifier si `email` ou `password` sont dans la requête et les refuser
+        if 'email' in user_data or 'password' in user_data:
+            return {'error': 'You cannot modify email or password'}, 400
+
+        # Trouver l'utilisateur par son ID
         user = facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404
 
-        updated_user = facade.update_user(user_id, user_data)
+        # Mise à jour des champs modifiables
+        updated_user = facade.update_user(user_id, update_fields)
 
         if not updated_user:
             return {'error': 'Failed to update user'}, 500
 
-        return {'id': updated_user.id, 'first_name': updated_user.first_name, 'last_name': updated_user.last_name, 'email': updated_user.email}, 200
+        return {
+            'id': updated_user.id,
+            'first_name': updated_user.first_name,
+            'last_name': updated_user.last_name,
+            'email': updated_user.email
+        }, 200
 
 
 @api.route('/email/<email>')
