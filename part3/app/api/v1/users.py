@@ -66,47 +66,50 @@ class UserResource(Resource):
     @jwt_required()
     @api.expect(user_model, validate=False)
     @api.response(403, 'Unauthorized action')
-    @api.response(400, 'You cannot modify email or password')
+    @api.response(400, 'Invalid modification')
     def put(self, user_id):
         """Update user details (Self or Admin)"""
         current_user = get_jwt_identity()
         claims = get_jwt()
+        is_admin = claims.get("is_admin", False)
 
-        if current_user != str(user_id) and not claims.get("is_admin"):
+        # Seuls les admins peuvent modifier un autre utilisateur
+        if current_user != str(user_id) and not is_admin:
             return {'message': 'Unauthorized action'}, 403
 
         user_data = api.payload
         update_fields = {}
 
+        # Tout le monde peut modifier prénom/nom
         if 'first_name' in user_data and user_data['first_name'].strip():
             update_fields['first_name'] = user_data['first_name'].strip()
         if 'last_name' in user_data and user_data['last_name'].strip():
             update_fields['last_name'] = user_data['last_name'].strip()
-        if 'email' in user_data or 'password' in user_data:
+
+        # Un utilisateur normal ne peut pas modifier email ou mot de passe
+        if not is_admin and ('email' in user_data or 'password' in user_data):
             return {'error': 'You cannot modify email or password'}, 400
+
+        # Si admin, il peut tout modifier
+        if is_admin:
+            if 'email' in user_data:
+                try:
+                    User.validate_email(None, user_data['email'])
+                    update_fields['email'] = user_data['email']
+                except ValueError as e:
+                    return {'error': str(e)}, 400
+
+            if 'password' in user_data and user_data['password'].strip():
+                update_fields['password'] = user_data['password'].strip()
 
         user = facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404
 
         updated_user = facade.update_user(user_id, update_fields)
-        return {'id': updated_user.id, 'first_name': updated_user.first_name, 'last_name': updated_user.last_name, 'email': updated_user.email}, 200
-
-    @jwt_required()
-    @api.response(200, 'User successfully deleted')
-    @api.response(403, 'Unauthorized action')
-    @api.response(404, 'User not found')
-    def delete(self, user_id):
-        """Delete a user (Self or Admin)"""
-        current_user = get_jwt_identity()
-        claims = get_jwt()
-
-        if current_user != str(user_id) and not claims.get("is_admin"):
-            return {'message': 'Unauthorized action'}, 403
-
-        user = facade.get_user(user_id)
-        if not user:
-            return {'error': 'User not found'}, 404
-
-        facade.delete_user(user_id)
-        return {'message': 'User successfully deleted'}, 200
+        return {
+            'id': updated_user.id,
+            'first_name': updated_user.first_name,
+            'last_name': updated_user.last_name,
+            'email': updated_user.email
+        }, 200
