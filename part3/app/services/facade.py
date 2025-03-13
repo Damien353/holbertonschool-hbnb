@@ -135,6 +135,18 @@ class HBnBFacade:
         self.place_repo.update(place_id, place_data)
         return self.place_repo.get(place_id)
 
+    def delete_place(self, place_id):
+        """Supprime un lieu par ID (admin uniquement)"""
+        # Récupérer le lieu par son ID
+        place = self.get_place(place_id)
+        if not place:
+            return {"error": "Place not found"}, 404
+
+        # Suppression du lieu
+        self.place_repo.delete(place_id)
+
+        return {"message": "Place successfully deleted"}, 200
+
     def get_place_with_amenities(self, place_id):
         """Récupère un lieu avec ses amenities sous forme d'objets"""
         place = self.get_place(place_id)

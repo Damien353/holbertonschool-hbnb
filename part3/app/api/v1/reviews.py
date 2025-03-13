@@ -73,7 +73,7 @@ class ReviewResource(Resource):
     @api.expect(review_model)
     @api.response(200, 'Review updated successfully')
     @api.response(400, 'Invalid input data')
-    @api.response(403, 'You can only update your own review')
+    @api.response(403, 'You can only update your own review or be an admin')
     @api.response(404, 'Review not found')
     def put(self, review_id):
         """Update a review's information"""
@@ -83,8 +83,9 @@ class ReviewResource(Resource):
         if not review:
             return {'message': 'Review not found'}, 404
 
-        if review.user_id != user_id:
-            return {'message': 'You can only update your own review'}, 403
+        # Vérifie si l'utilisateur est le propriétaire ou un administrateur
+        if review.user_id != user_id and not facade.get_user(user_id).is_admin:
+            return {'message': 'You can only update your own review or be an admin'}, 403
 
         review_data = api.payload
         new_text = review_data.get("text")
@@ -101,7 +102,7 @@ class ReviewResource(Resource):
 
     @jwt_required()
     @api.response(200, 'Review deleted successfully')
-    @api.response(403, 'You can only delete your own review')
+    @api.response(403, 'You can only delete your own review or be an admin')
     @api.response(404, 'Review not found')
     def delete(self, review_id):
         """Delete a review"""
@@ -111,8 +112,9 @@ class ReviewResource(Resource):
         if not review:
             return {'message': 'Review not found'}, 404
 
-        if review.user_id != user_id:
-            return {'message': 'You can only delete your own review'}, 403
+        # Vérifie si l'utilisateur est le propriétaire ou un administrateur
+        if review.user_id != user_id and not facade.get_user(user_id).is_admin:
+            return {'message': 'You can only delete your own review or be an admin'}, 403
 
         # Supprime la review
         facade.delete_review(review_id)

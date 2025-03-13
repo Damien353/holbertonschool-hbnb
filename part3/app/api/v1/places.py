@@ -1,6 +1,6 @@
 from flask_restx import Namespace, Resource, fields
 from app.services import facade
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
 api = Namespace('places', description='Place operations')
 
@@ -92,8 +92,12 @@ class PlaceResource(Resource):
         if not place:
             return {"error": "Place not found"}, 404
 
-        # Vérifier que l'utilisateur est bien le propriétaire du lieu
-        if place.owner_id != current_user_id:
+        # Récupérer les informations du JWT (is_admin)
+        claims = get_jwt()
+        is_admin = claims.get('is_admin', False)
+
+        # Si l'utilisateur est un admin ou si l'utilisateur est le propriétaire de la place
+        if not is_admin and place.owner_id != current_user_id:
             return {"error": "Unauthorized action"}, 403
 
         if place_data.get('price', 0) <= 0:
@@ -104,30 +108,25 @@ class PlaceResource(Resource):
 
         return updated_place.to_dict(), 200
 
+    @jwt_required()
+    @api.response(200, 'Place deleted successfully')
+    @api.response(404, 'Place not found')
+    @api.response(403, 'Unauthorized action')
+    def delete(self, place_id):
+        """Delete a place (admins only)"""
+        # Récupérer les informations du JWT (is_admin)
+        claims = get_jwt()
+        is_admin = claims.get('is_admin', False)
 
-@api.route('/<place_id>/reviews')
-class PlaceReviewResource(Resource):
-    @api.expect(api.model('ReviewAssociation', {
-        'review_id': fields.String(required=True, description="Review ID to associate with the place")
-    }))
-    @api.response(200, "Review successfully added to the place")
-    @api.response(400, "Invalid input data")
-    @api.response(404, "Place or Review not found")
-    def put(self, place_id):
-        """Associer une review existante à un lieu"""
+        if not is_admin:
+            return {"error": "Unauthorized action, admins only"}, 403
+
+        # Vérifier si la place existe
         place = facade.get_place(place_id)
         if not place:
             return {"error": "Place not found"}, 404
 
-        data = api.payload
-        review = facade.get_review(data.get("review_id"))
-        if not review:
-            return {"error": "Review not found"}, 404
+        # Appel à la méthode pour supprimer la place
+        facade.delete_place(place_id)
 
-        # Ajout de la review
-        try:
-            place.add_review(review)
-        except ValueError as e:
-            return {"error": str(e)}, 400
-
-        return place.to_dict(), 200
+        return {"message": "Place successfully deleted"}, 200
