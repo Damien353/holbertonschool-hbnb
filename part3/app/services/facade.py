@@ -12,6 +12,29 @@ class HBnBFacade:
         self.review_repo = InMemoryRepository()
         self.amenity_repo = InMemoryRepository()
 
+        self.initialize_admin()
+
+    def initialize_admin(self):
+        """Crée un utilisateur admin au démarrage si non existant."""
+        admin_email = "admin@example.com"
+
+        # Vérifie si l'admin existe déjà
+        existing_admin = self.get_user_by_email(admin_email)
+        if existing_admin:
+            return  # L'admin existe déjà, on ne le recrée pas
+
+        # Création de l'admin (le modèle User gère l'UUID et le hashage du mot de passe)
+        admin_user = User(
+            first_name="Admin",
+            last_name="User",
+            email=admin_email,
+            password="adminpassword",  # Sera automatiquement hashé
+            is_admin=True
+        )
+
+        # Ajouter l'admin au stockage en mémoire
+        self.user_repo.add(admin_user)
+
     def create_user(self, user_data):
         # Crée un utilisateur avec un mot de passe haché
         user = User(
