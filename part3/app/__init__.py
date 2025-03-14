@@ -19,6 +19,10 @@ def create_app(config_class=DevelopmentConfig):
     jwt.init_app(app)
     db.init_app(app)
 
+    # Créer les tables de la base de données
+    with app.app_context():
+        db.create_all()
+
     # Initialiser l'API
     api = Api(app, version='1.0', title='HBnB API',
               description='HBnB Application API', doc='/api/v1/')
