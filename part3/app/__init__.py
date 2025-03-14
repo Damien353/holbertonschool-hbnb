@@ -18,6 +18,7 @@ def create_app(config_class=DevelopmentConfig):
     bcrypt.init_app(app)
     jwt.init_app(app)
     db.init_app(app)
+
     # Initialiser l'API
     api = Api(app, version='1.0', title='HBnB API',
               description='HBnB Application API', doc='/api/v1/')
@@ -28,5 +29,12 @@ def create_app(config_class=DevelopmentConfig):
     api.add_namespace(reviews_ns, path='/api/v1/reviews')
     api.add_namespace(auth_ns, path='/api/v1/auth')
     api.add_namespace(protected_ns, path='/api/v1')
+
+    # Initialiser l'admin dans un contexte d'application
+    with app.app_context():
+        from app.services import get_facade
+        facade = get_facade()
+        user_facade = facade.user_facade
+        user_facade.initialize_admin()
 
     return app

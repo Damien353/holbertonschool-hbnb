@@ -1,4 +1,4 @@
-# app/services/userfacade.py
+
 from app.services.repositories.user_repository import UserRepository
 from app.models.user import User
 
@@ -6,7 +6,6 @@ from app.models.user import User
 class UserFacade:
     def __init__(self):
         self.user_repo = UserRepository()
-        self.initialize_admin()
 
     def initialize_admin(self):
         admin_email = "admin@example.com"

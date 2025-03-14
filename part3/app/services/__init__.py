@@ -1,3 +1,5 @@
 from app.services.facade import HBnBFacade
 
-facade = HBnBFacade()
+
+def get_facade():
+    return HBnBFacade()
