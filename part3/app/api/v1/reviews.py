@@ -32,7 +32,8 @@ class ReviewList(Resource):
         review_data['user_id'] = current_user_id
 
         # Vérifier que le lieu existe
-        place = facade.place_facade.place_repo.get(review_data['place_id'])
+        place = facade.place_facade.get_place(
+            review_data['place_id'], load_reviews=False)
         if not place:
             return {'message': 'Place not found'}, 400
 
@@ -43,7 +44,7 @@ class ReviewList(Resource):
         # Vérifier si l'utilisateur a déjà laissé un avis sur ce lieu
         existing_reviews = facade.review_facade.get_reviews_by_place(
             review_data['place_id'])
-        if any(review.user_id == current_user_id for review in existing_reviews if hasattr(review, 'user_id')):
+        if existing_reviews and any(review.user_id == current_user_id for review in existing_reviews):
             return {'message': 'You have already reviewed this place.'}, 400
 
         # Créer l'avis
@@ -135,9 +136,13 @@ class PlaceReviewList(Resource):
     def get(self, place_id):
         facade = get_facade()
         """Get all reviews for a specific place"""
-        reviews = facade.review_facade.get_reviews_by_place(place_id)
-        if not reviews and reviews is not []:
+        # Utiliser la méthode directe pour éviter de vérifier l'existence de la place
+        reviews = facade.review_facade.get_reviews_by_place_direct(place_id)
+        if reviews is None:
             return {"message": "Place not found"}, 404
+
+        if not reviews:  # Si la liste est vide, retourner une liste vide mais pas 404
+            return [], 200
 
         # Sérialiser les avis avant de les retourner
         return [review.to_dict() for review in reviews], 200

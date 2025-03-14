@@ -30,6 +30,12 @@ place_model = api.model('Place', {
     'reviews': fields.List(fields.String, description="List of reviews on the place")
 })
 
+# Modèle pour la review
+review_model = api.model('PlaceReview', {
+    'text': fields.String(required=True, description='Text of the review'),
+    'rating': fields.Integer(required=True, description='Rating (1-5)')
+})
+
 
 @api.route('/')
 class PlaceList(Resource):
@@ -112,7 +118,7 @@ class PlaceResource(Resource):
         place_data = api.payload
 
         # Vérifier si le lieu existe
-        place = facade.place_facade.get_place(place_id)
+        place = facade.place_facade.get_place(place_id, load_reviews=False)
         if not place:
             return {"error": "Place not found"}, 404
 
@@ -157,7 +163,7 @@ class PlaceResource(Resource):
             return {"error": "Unauthorized action, admins only"}, 403
 
         # Vérifier si la place existe
-        place = facade.place_facade.get_place(place_id)
+        place = facade.place_facade.get_place(place_id, load_reviews=False)
         if not place:
             return {"error": "Place not found"}, 404
 
@@ -165,3 +171,66 @@ class PlaceResource(Resource):
         facade.place_facade.delete_place(place_id)
 
         return {"message": "Place successfully deleted"}, 200
+
+
+@api.route('/<place_id>/reviews')
+class PlaceReviews(Resource):
+    @api.response(200, 'List of reviews for the place retrieved successfully')
+    @api.response(404, 'Place not found')
+    def get(self, place_id):
+        facade = get_facade()
+        """Get all reviews for a specific place"""
+        # Vérifier d'abord si la place existe
+        place = facade.place_facade.get_place(place_id, load_reviews=False)
+        if not place:
+            return {"error": "Place not found"}, 404
+
+        # Utiliser la méthode directe pour éviter les problèmes de récursion
+        reviews = facade.review_facade.get_reviews_by_place_direct(place_id)
+
+        # Si aucune review n'est trouvée, retourner une liste vide
+        if not reviews:
+            return [], 200
+
+        # Sérialiser les avis avant de les retourner
+        return [review.to_dict() for review in reviews], 200
+
+    @jwt_required()
+    @api.expect(review_model)
+    @api.response(201, 'Review successfully created')
+    @api.response(400, 'Invalid input data')
+    @api.response(404, 'Place not found')
+    def post(self, place_id):
+        facade = get_facade()
+        """Add a review to a specific place"""
+        current_user_id = get_jwt_identity()
+
+        # Vérifier si la place existe
+        place = facade.place_facade.get_place(place_id, load_reviews=False)
+        if not place:
+            return {"error": "Place not found"}, 404
+
+        # Vérifier que l'utilisateur ne note pas son propre lieu
+        if place.owner_id == current_user_id:
+            return {"error": "You cannot review your own place"}, 400
+
+        # Récupérer les données de la review
+        review_data = api.payload
+
+        # Compléter les données nécessaires pour créer la review
+        review_data['user_id'] = current_user_id
+        review_data['place_id'] = place_id
+
+        # Vérifier si l'utilisateur a déjà laissé un avis sur ce lieu
+        existing_reviews = facade.review_facade.get_reviews_by_place_direct(
+            place_id)
+        if existing_reviews and any(review.user_id == current_user_id for review in existing_reviews):
+            return {"error": "You have already reviewed this place"}, 400
+
+        # Créer la review
+        review = facade.review_facade.create_review(review_data)
+
+        if not review:
+            return {"error": "Invalid review data"}, 400
+
+        return review.to_dict(), 201
