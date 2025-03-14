@@ -114,7 +114,7 @@ class ReviewResource(Resource):
             return {'message': 'Review not found'}, 404
 
         # Vérifie si l'utilisateur est le propriétaire ou un administrateur
-        if review.user_id != user_id and not facade.get_user(user_id).is_admin:
+        if review.user_id != user_id and not facade.user_facade.get_user(user_id).is_admin:
             return {'message': 'You can only delete your own review or be an admin'}, 403
 
         # Supprime la review
