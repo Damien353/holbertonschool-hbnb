@@ -19,12 +19,27 @@ class ReviewFacade:
         if not rating or rating < 1 or rating > 5:
             return None
 
-        review = Review(**review_data)
+        # Créer la review avec les objets complets
+        review = Review(
+            text=review_data['text'],
+            rating=review_data['rating'],
+            place=place,
+            user=user
+        )
         self.review_repo.add(review)
         return review
 
     def get_review(self, review_id):
         return self.review_repo.get(review_id)
+
+    def get_reviews_by_place(self, place_id):
+        place = self.place_facade.get_place(place_id)
+        if not place:
+            return None
+        # Rechercher les avis pour ce lieu
+        reviews = [review for review in self.review_repo.get_all()
+                   if review.place_id == place_id]
+        return reviews
 
     def get_all_reviews(self):
         return self.review_repo.get_all()
