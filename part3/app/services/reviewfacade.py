@@ -10,7 +10,9 @@ class ReviewFacade:
 
     def create_review(self, review_data):
         user = self.user_facade.get_user(review_data['user_id'])
-        place = self.place_facade.get_place(review_data['place_id'])
+        # Utiliser load_reviews=False pour éviter la récursion
+        place = self.place_facade.get_place(
+            review_data['place_id'], load_reviews=False)
 
         if not user or not place:
             return None
@@ -37,13 +39,25 @@ class ReviewFacade:
         return self.review_repo.get(review_id)
 
     def get_reviews_by_place(self, place_id):
-        place = self.place_facade.get_place(place_id)
+        """
+        Récupère les reviews associées à un lieu - cette méthode vérifie d'abord 
+        que le lieu existe, ce qui peut causer une récursion si utilisée dans get_place()
+        """
+        # Utiliser load_reviews=False pour éviter la récursion
+        place = self.place_facade.get_place(place_id, load_reviews=False)
         if not place:
             return None
-        # Rechercher les avis pour ce lieu
-        reviews = [review for review in self.review_repo.get_all()
-                   if review.place_id == place_id]
-        return reviews
+
+        # Récupérer les reviews directement
+        return self.get_reviews_by_place_direct(place_id)
+
+    def get_reviews_by_place_direct(self, place_id):
+        """
+        Récupère les reviews directement depuis le repository sans vérifier l'existence du lieu
+        """
+        # Rechercher les avis pour ce lieu directement sans passer par get_place
+        return [review for review in self.review_repo.get_all()
+                if review.place_id == place_id]
 
     def get_all_reviews(self):
         return self.review_repo.get_all()
@@ -63,4 +77,4 @@ class ReviewFacade:
         if not self.review_repo.get(review_id):
             return None
         self.review_repo.delete(review_id)
-        return {"message": "Review successfully deleted"}, 200
+        return {"message": "Review deleted successfully"}, 200

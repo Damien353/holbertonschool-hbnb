@@ -48,7 +48,14 @@ class PlaceFacade:
         self.place_repo.add(new_place)
         return new_place
 
-    def get_place(self, place_id):
+    def get_place(self, place_id, load_reviews=True):
+        """
+        Récupère un lieu par son ID
+
+        Args:
+            place_id: ID du lieu à récupérer
+            load_reviews: Si True, charge les reviews associées (défaut=True)
+        """
         place = self.place_repo.get(place_id)
         if place:
             # Assurer que l'attribut amenities existe toujours
@@ -59,15 +66,18 @@ class PlaceFacade:
             if not hasattr(place, 'reviews'):
                 place.reviews = []
 
-            # Charger les reviews associées à cette place
-            from app.services import get_facade
-            facade = get_facade()
-            if hasattr(facade, 'review_facade'):
-                reviews = facade.review_facade.get_reviews_by_place(place_id)
-                if reviews:
-                    for review in reviews:
-                        if review not in place.reviews:
-                            place.add_review(review)
+            # Charger les reviews associées à cette place si demandé
+            if load_reviews:
+                from app.services import get_facade
+                facade = get_facade()
+                if hasattr(facade, 'review_facade'):
+                    # Utiliser une méthode qui ne provoquera pas de récursion
+                    reviews = facade.review_facade.get_reviews_by_place_direct(
+                        place_id)
+                    if reviews:
+                        for review in reviews:
+                            if review not in place.reviews:
+                                place.add_review(review)
         return place
 
     def get_all_places(self):
@@ -81,7 +91,8 @@ class PlaceFacade:
         return places
 
     def update_place(self, place_id, place_data):
-        place = self.place_repo.get(place_id)
+        # Utiliser get_place avec load_reviews=False pour éviter la récursion
+        place = self.get_place(place_id, load_reviews=False)
         if not place:
             return {"error": "Place not found"}, 404
 
@@ -116,7 +127,8 @@ class PlaceFacade:
         return place
 
     def delete_place(self, place_id):
-        if not self.place_repo.get(place_id):
+        # Vérifier si la place existe sans charger les reviews
+        if not self.get_place(place_id, load_reviews=False):
             return {"error": "Place not found"}, 404
         self.place_repo.delete(place_id)
         return {"message": "Place successfully deleted"}, 200
