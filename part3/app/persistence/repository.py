@@ -1,4 +1,4 @@
-from app import db
+from app.extensions import db, jwt, bcrypt
 from abc import ABC, abstractmethod
 
 

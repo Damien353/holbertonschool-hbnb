@@ -1,9 +1,7 @@
 #!/usr/bin/python3
 import re
 from app.models.BaseModel import BaseModel
-from flask_bcrypt import Bcrypt
-
-bcrypt = Bcrypt()
+from app.extensions import db, jwt, bcrypt
 
 
 class User(BaseModel):
