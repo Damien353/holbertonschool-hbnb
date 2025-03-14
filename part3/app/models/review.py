@@ -15,8 +15,8 @@ class Review(BaseModel):
 
         self.text = text
         self.rating = rating
-        self.place = place
-        self.user = user
+        self._place = place  # Stockage en mémoire pour éviter de requêter à chaque fois
+        self._user = user    # Stockage en mémoire pour éviter de requêter à chaque fois
         self.place_id = place.id
         self.user_id = user.id
         self.validate()  # Appel à la méthode de validation
@@ -29,10 +29,20 @@ class Review(BaseModel):
         if not self.text or len(self.text.strip()) == 0:
             raise ValueError("Review text cannot be empty")
 
-        if not hasattr(self.place, 'id'):
+        if not hasattr(self._place, 'id'):
             raise ValueError("Place must have an 'id' attribute")
-        if not hasattr(self.user, 'id'):
+        if not hasattr(self._user, 'id'):
             raise ValueError("User must have an 'id' attribute")
+
+    @property
+    def place(self):
+        """Getter pour l'objet place pour maintenir la compatibilité avec le code existant"""
+        return self._place
+
+    @property
+    def user(self):
+        """Getter pour l'objet user pour maintenir la compatibilité avec le code existant"""
+        return self._user
 
     def to_dict(self):
         """Retourne une représentation sous forme de dictionnaire"""

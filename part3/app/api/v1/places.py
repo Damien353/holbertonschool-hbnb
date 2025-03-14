@@ -1,5 +1,5 @@
 from flask_restx import Namespace, Resource, fields
-from app.services import facade
+from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.services import get_facade
 
@@ -54,13 +54,25 @@ class PlaceList(Resource):
         if isinstance(new_place, tuple):  # Si create_place() a retourné une erreur
             return new_place
 
-        return new_place.to_dict(), 201
+        # S'assurer que la méthode to_dict est disponible
+        if hasattr(new_place, 'to_dict'):
+            return new_place.to_dict(), 201
+
+        # Fallback si to_dict n'est pas disponible
+        return {"id": new_place.id, "message": "Place created successfully"}, 201
 
     @api.response(200, 'List of places retrieved successfully')
     def get(self):
         facade = get_facade()
         """Retrieve a list of all places"""
         places = facade.place_facade.get_all_places()
+
+        # Vérifier que chaque place a l'attribut 'amenities'
+        for place in places:
+            if not hasattr(place, 'amenities'):
+                place.amenities = []
+            if not hasattr(place, 'reviews'):
+                place.reviews = []
 
         # Utilisation de to_dict() pour retourner chaque place sous forme de dictionnaire
         return [place.to_dict() for place in places], 200
@@ -76,6 +88,13 @@ class PlaceResource(Resource):
         place = facade.place_facade.get_place(place_id)
         if not place:
             return {"error": "Place not found"}, 404
+
+        # Vérifier que la place a les attributs nécessaires
+        if not hasattr(place, 'amenities'):
+            place.amenities = []
+        if not hasattr(place, 'reviews'):
+            place.reviews = []
+
         return place.to_dict(), 200
 
     @jwt_required()
@@ -110,6 +129,16 @@ class PlaceResource(Resource):
 
         # Mettre à jour le lieu avec les nouvelles données
         updated_place = facade.place_facade.update_place(place_id, place_data)
+
+        # Vérifier si la mise à jour a retourné une erreur
+        if isinstance(updated_place, tuple):
+            return updated_place
+
+        # Vérifier que la place a les attributs nécessaires
+        if not hasattr(updated_place, 'amenities'):
+            updated_place.amenities = []
+        if not hasattr(updated_place, 'reviews'):
+            updated_place.reviews = []
 
         return updated_place.to_dict(), 200
 

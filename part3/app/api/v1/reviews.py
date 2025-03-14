@@ -37,13 +37,13 @@ class ReviewList(Resource):
             return {'message': 'Place not found'}, 400
 
         # Vérifier que l'utilisateur ne note pas son propre lieu
-        if place.owner.id == current_user_id:
+        if place.owner_id == current_user_id:  # Utiliser owner_id au lieu de owner.id
             return {'message': 'You cannot review your own place.'}, 400
 
         # Vérifier si l'utilisateur a déjà laissé un avis sur ce lieu
         existing_reviews = facade.review_facade.get_reviews_by_place(
             review_data['place_id'])
-        if any(review["user_id"] == current_user_id for review in existing_reviews):
+        if any(review.user_id == current_user_id for review in existing_reviews if hasattr(review, 'user_id')):
             return {'message': 'You have already reviewed this place.'}, 400
 
         # Créer l'avis
@@ -136,7 +136,7 @@ class PlaceReviewList(Resource):
         facade = get_facade()
         """Get all reviews for a specific place"""
         reviews = facade.review_facade.get_reviews_by_place(place_id)
-        if not reviews:
+        if not reviews and reviews is not []:
             return {"message": "Place not found"}, 404
 
         # Sérialiser les avis avant de les retourner

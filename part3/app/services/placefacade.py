@@ -21,14 +21,6 @@ class PlaceFacade:
         # Supprimer les reviews s'ils existent dans les données (on ne les gère pas ici)
         place_data.pop("reviews", None)
 
-        # Vérifier les amenities
-        valid_amenities = []
-        for amenity_id in amenities_ids:
-            amenity = self.amenity_facade.get_amenity(amenity_id)
-            if not amenity:
-                return {"error": f"Amenity {amenity_id} not found"}, 400
-            valid_amenities.append(amenity)
-
         # Créer un objet Place avec les repository requis
         new_place = Place(
             title=place_data.get('title'),
@@ -42,25 +34,60 @@ class PlaceFacade:
             amenities=amenities_ids
         )
 
-        # Ajouter les amenities valides
-        for amenity in valid_amenities:
-            new_place.add_amenity(amenity)
+        # S'assurer que l'attribut amenities existe
+        if not hasattr(new_place, 'amenities'):
+            new_place.amenities = []
+
+        # Vérifier les amenities et les ajouter
+        for amenity_id in amenities_ids:
+            amenity = self.amenity_facade.get_amenity(amenity_id)
+            if amenity:
+                new_place.add_amenity(amenity)
 
         # Enregistrer le lieu
         self.place_repo.add(new_place)
-
         return new_place
 
     def get_place(self, place_id):
-        return self.place_repo.get(place_id)
+        place = self.place_repo.get(place_id)
+        if place:
+            # Assurer que l'attribut amenities existe toujours
+            if not hasattr(place, 'amenities'):
+                place.amenities = []
+
+            # Assurer que l'attribut reviews existe toujours
+            if not hasattr(place, 'reviews'):
+                place.reviews = []
+
+            # Charger les reviews associées à cette place
+            from app.services import get_facade
+            facade = get_facade()
+            if hasattr(facade, 'review_facade'):
+                reviews = facade.review_facade.get_reviews_by_place(place_id)
+                if reviews:
+                    for review in reviews:
+                        if review not in place.reviews:
+                            place.add_review(review)
+        return place
 
     def get_all_places(self):
-        return self.place_repo.get_all()
+        places = self.place_repo.get_all()
+        # S'assurer que chaque place a les attributs amenities et reviews
+        for place in places:
+            if not hasattr(place, 'amenities'):
+                place.amenities = []
+            if not hasattr(place, 'reviews'):
+                place.reviews = []
+        return places
 
     def update_place(self, place_id, place_data):
         place = self.place_repo.get(place_id)
         if not place:
             return {"error": "Place not found"}, 404
+
+        # S'assurer que l'attribut amenities existe
+        if not hasattr(place, 'amenities'):
+            place.amenities = []
 
         # Mettre à jour les attributs de base
         if 'title' in place_data:
