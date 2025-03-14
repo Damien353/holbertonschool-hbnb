@@ -130,7 +130,7 @@ class PlaceResource(Resource):
         if not is_admin and place.owner_id != current_user_id:
             return {"error": "Unauthorized action"}, 403
 
-        if place_data.get('price', 0) <= 0:
+        if 'price' in place_data and place_data['price'] <= 0:
             return {"error": "Le prix doit être positif"}, 400
 
         # Mettre à jour le lieu avec les nouvelles données

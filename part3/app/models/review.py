@@ -7,18 +7,30 @@ class Review(BaseModel):
 
     text = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Integer, nullable=False)
-    place_id = db.Column(db.String(36), nullable=False)
-    user_id = db.Column(db.String(36), nullable=False)
+    place_id = db.Column(db.String(36), db.ForeignKey(
+        'places.id'), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey(
+        'users.id'), nullable=False)
 
     def __init__(self, text, rating, place, user):
         super().__init__()
 
         self.text = text
         self.rating = rating
-        self._place = place  # Stockage en mémoire pour éviter de requêter à chaque fois
-        self._user = user    # Stockage en mémoire pour éviter de requêter à chaque fois
-        self.place_id = place.id
-        self.user_id = user.id
+
+        # Si place et user sont des instances complètes, nous récupérons leur ID
+        if hasattr(place, 'id'):
+            self.place_id = place.id
+            self.place = place
+        else:
+            self.place_id = place
+
+        if hasattr(user, 'id'):
+            self.user_id = user.id
+            self.user = user
+        else:
+            self.user_id = user
+
         self.validate()  # Appel à la méthode de validation
 
     def validate(self):
@@ -29,21 +41,6 @@ class Review(BaseModel):
         if not self.text or len(self.text.strip()) == 0:
             raise ValueError("Review text cannot be empty")
 
-        if not hasattr(self._place, 'id'):
-            raise ValueError("Place must have an 'id' attribute")
-        if not hasattr(self._user, 'id'):
-            raise ValueError("User must have an 'id' attribute")
-
-    @property
-    def place(self):
-        """Getter pour l'objet place pour maintenir la compatibilité avec le code existant"""
-        return self._place
-
-    @property
-    def user(self):
-        """Getter pour l'objet user pour maintenir la compatibilité avec le code existant"""
-        return self._user
-
     def to_dict(self):
         """Retourne une représentation sous forme de dictionnaire"""
         return {
@@ -51,7 +48,9 @@ class Review(BaseModel):
             "text": self.text,
             "rating": self.rating,
             "user_id": self.user_id,
-            "place_id": self.place_id
+            "place_id": self.place_id,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None
         }
 
     def update_review(self, new_text, new_rating):

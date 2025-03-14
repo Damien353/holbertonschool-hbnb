@@ -21,24 +21,17 @@ class PlaceFacade:
         # Supprimer les reviews s'ils existent dans les données (on ne les gère pas ici)
         place_data.pop("reviews", None)
 
-        # Créer un objet Place avec les repository requis
+        # Créer un objet Place
         new_place = Place(
             title=place_data.get('title'),
             description=place_data.get('description', ''),
             price=place_data.get('price'),
             latitude=place_data.get('latitude'),
             longitude=place_data.get('longitude'),
-            owner_id=owner_id,
-            user_repository=self.user_facade.user_repo,
-            amenity_repository=self.amenity_facade.amenity_repo,
-            amenities=amenities_ids
+            owner_id=owner_id
         )
 
-        # S'assurer que l'attribut amenities existe
-        if not hasattr(new_place, 'amenities'):
-            new_place.amenities = []
-
-        # Vérifier les amenities et les ajouter
+        # Ajouter les amenities
         for amenity_id in amenities_ids:
             amenity = self.amenity_facade.get_amenity(amenity_id)
             if amenity:
@@ -57,48 +50,22 @@ class PlaceFacade:
             load_reviews: Si True, charge les reviews associées (défaut=True)
         """
         place = self.place_repo.get(place_id)
-        if place:
-            # Assurer que l'attribut amenities existe toujours
-            if not hasattr(place, 'amenities'):
-                place.amenities = []
-
-            # Assurer que l'attribut reviews existe toujours
-            if not hasattr(place, 'reviews'):
-                place.reviews = []
-
-            # Charger les reviews associées à cette place si demandé
-            if load_reviews:
-                from app.services import get_facade
-                facade = get_facade()
-                if hasattr(facade, 'review_facade'):
-                    # Utiliser une méthode qui ne provoquera pas de récursion
-                    reviews = facade.review_facade.get_reviews_by_place_direct(
-                        place_id)
-                    if reviews:
-                        for review in reviews:
-                            if review not in place.reviews:
-                                place.add_review(review)
+        # Avec les relations SQLAlchemy, nous n'avons plus besoin de charger manuellement
+        # les reviews et amenities, ils seront chargés automatiquement lors de l'accès
         return place
 
     def get_all_places(self):
         places = self.place_repo.get_all()
-        # S'assurer que chaque place a les attributs amenities et reviews
-        for place in places:
-            if not hasattr(place, 'amenities'):
-                place.amenities = []
-            if not hasattr(place, 'reviews'):
-                place.reviews = []
         return places
 
     def update_place(self, place_id, place_data):
-        # Utiliser get_place avec load_reviews=False pour éviter la récursion
         place = self.get_place(place_id, load_reviews=False)
         if not place:
             return {"error": "Place not found"}, 404
 
-        # S'assurer que l'attribut amenities existe
-        if not hasattr(place, 'amenities'):
-            place.amenities = []
+        # Vérifier le prix uniquement s'il est fourni
+        if 'price' in place_data and place_data.get('price', 0) <= 0:
+            return {"error": "Le prix doit être positif"}, 400
 
         # Mettre à jour les attributs de base
         if 'title' in place_data:
@@ -114,7 +81,7 @@ class PlaceFacade:
 
         # Gestion des amenities si présentes
         if 'amenities' in place_data:
-            # Réinitialiser les amenities (nous les redéfinirons)
+            # Réinitialiser les amenities
             place.amenities = []
 
             for amenity_id in place_data['amenities']:
@@ -127,8 +94,15 @@ class PlaceFacade:
         return place
 
     def delete_place(self, place_id):
-        # Vérifier si la place existe sans charger les reviews
-        if not self.get_place(place_id, load_reviews=False):
+        place = self.get_place(place_id, load_reviews=False)
+        if not place:
             return {"error": "Place not found"}, 404
         self.place_repo.delete(place_id)
         return {"message": "Place successfully deleted"}, 200
+
+    def get_places_by_user(self, user_id):
+        """Récupère tous les lieux appartenant à un utilisateur donné"""
+        user = self.user_facade.get_user(user_id)
+        if not user:
+            return None
+        return user.places.all()

@@ -10,7 +10,6 @@ class ReviewFacade:
 
     def create_review(self, review_data):
         user = self.user_facade.get_user(review_data['user_id'])
-        # Utiliser load_reviews=False pour éviter la récursion
         place = self.place_facade.get_place(
             review_data['place_id'], load_reviews=False)
 
@@ -29,10 +28,6 @@ class ReviewFacade:
             user=user
         )
         self.review_repo.add(review)
-
-        # Ajouter la review à la place (non persisté en DB car pas de relation)
-        place.add_review(review)
-
         return review
 
     def get_review(self, review_id):
@@ -40,24 +35,29 @@ class ReviewFacade:
 
     def get_reviews_by_place(self, place_id):
         """
-        Récupère les reviews associées à un lieu - cette méthode vérifie d'abord 
-        que le lieu existe, ce qui peut causer une récursion si utilisée dans get_place()
+        Récupère les reviews associées à un lieu
         """
-        # Utiliser load_reviews=False pour éviter la récursion
         place = self.place_facade.get_place(place_id, load_reviews=False)
         if not place:
             return None
 
-        # Récupérer les reviews directement
-        return self.get_reviews_by_place_direct(place_id)
+        # Grâce aux relations SQLAlchemy, nous pouvons directement accéder aux reviews
+        return place.reviews.all()
 
     def get_reviews_by_place_direct(self, place_id):
         """
-        Récupère les reviews directement depuis le repository sans vérifier l'existence du lieu
+        Méthode alternative pour récupérer les reviews par place_id directement
         """
-        # Rechercher les avis pour ce lieu directement sans passer par get_place
-        return [review for review in self.review_repo.get_all()
-                if review.place_id == place_id]
+        return self.review_repo.model.query.filter_by(place_id=place_id).all()
+
+    def get_reviews_by_user(self, user_id):
+        """
+        Récupère tous les avis écrits par un utilisateur donné
+        """
+        user = self.user_facade.get_user(user_id)
+        if not user:
+            return None
+        return user.reviews.all()
 
     def get_all_reviews(self):
         return self.review_repo.get_all()
@@ -77,4 +77,4 @@ class ReviewFacade:
         if not self.review_repo.get(review_id):
             return None
         self.review_repo.delete(review_id)
-        return {"message": "Review deleted successfully"}, 200
+        return {"message": "Review successfully deleted"}, 200

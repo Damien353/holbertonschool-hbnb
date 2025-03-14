@@ -1,4 +1,3 @@
-# app/models/user.py
 from app.extensions import db, bcrypt
 from app.models.BaseModel import BaseModel
 import re
@@ -13,7 +12,14 @@ class User(BaseModel):
     password = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
 
+    # Relations
+    places = db.relationship('Place', backref='owner',
+                             lazy='dynamic', cascade="all, delete-orphan")
+    reviews = db.relationship('Review', backref='user',
+                              lazy='dynamic', cascade="all, delete-orphan")
+
     def __init__(self, first_name, last_name, email, password, is_admin=False):
+        super().__init__()
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
@@ -49,5 +55,6 @@ class User(BaseModel):
             "id": self.id,
             "first_name": self.first_name,
             "last_name": self.last_name,
-            "email": self.email
+            "email": self.email,
+            "is_admin": self.is_admin
         }

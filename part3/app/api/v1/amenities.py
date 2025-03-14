@@ -8,7 +8,8 @@ api = Namespace('amenities', description='Amenity operations')
 
 # Define the amenity model for input validation and documentation
 amenity_model = api.model('Amenity', {
-    'name': fields.String(required=True, description='Name of the amenity')
+    'name': fields.String(required=True, description='Name of the amenity'),
+    'description': fields.String(description='Description of the amenity')
 })
 
 
@@ -38,7 +39,8 @@ class AmenityList(Resource):
 
             return {
                 'id': new_amenity.id,
-                'name': new_amenity.name
+                'name': new_amenity.name,
+                'description': new_amenity.description
             }, 201
         except ValueError as e:
             return {'message': str(e)}, 400
@@ -48,7 +50,7 @@ class AmenityList(Resource):
         facade = get_facade()
         """Retrieve a list of all amenities"""
         amenities = facade.amenity_facade.get_all_amenities()
-        return [{'id': amenity.id, 'name': amenity.name} for amenity in amenities], 200
+        return [amenity.to_dict() for amenity in amenities], 200
 
 
 @api.route('/<amenity_id>')
@@ -62,7 +64,7 @@ class AmenityResource(Resource):
         if not amenity:
             return {'message': 'Amenity not found'}, 404
 
-        return {'id': amenity.id, 'name': amenity.name}, 200
+        return amenity.to_dict(), 200
 
     @jwt_required()
     @api.expect(amenity_model)
@@ -92,3 +94,22 @@ class AmenityResource(Resource):
             return {'message': 'Amenity updated successfully'}, 200
         except ValueError as e:
             return {'message': str(e)}, 400
+
+
+@api.route('/<amenity_id>/places')
+class AmenityPlaces(Resource):
+    @api.response(200, 'List of places with this amenity retrieved successfully')
+    @api.response(404, 'Amenity not found')
+    def get(self, amenity_id):
+        facade = get_facade()
+        """Get all places that have this specific amenity"""
+        # Vérifier d'abord si l'équipement existe
+        amenity = facade.amenity_facade.get_amenity(amenity_id)
+        if not amenity:
+            return {"message": "Amenity not found"}, 404
+
+        # Récupérer les lieux qui ont cet équipement grâce à la relation
+        places = facade.amenity_facade.get_places_with_amenity(amenity_id)
+
+        # Sérialiser les lieux avant de les retourner
+        return [place.to_dict() for place in places], 200

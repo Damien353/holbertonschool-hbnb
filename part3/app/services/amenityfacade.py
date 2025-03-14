@@ -41,3 +41,12 @@ class AmenityFacade:
         # Sauvegarder les modifications
         amenity.save()
         return amenity
+
+    def get_places_with_amenity(self, amenity_id):
+        """
+        Récupère tous les lieux qui disposent d'un équipement spécifique
+        """
+        amenity = self.get_amenity(amenity_id)
+        if not amenity:
+            return None
+        return amenity.places.all()

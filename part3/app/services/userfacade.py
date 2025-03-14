@@ -51,3 +51,17 @@ class UserFacade:
             self.user_repo.update(user_id, user_data)
 
         return user
+
+    def get_user_places(self, user_id):
+        """Récupère tous les lieux appartenant à un utilisateur donné"""
+        user = self.get_user(user_id)
+        if not user:
+            return None
+        return user.places.all()
+
+    def get_user_reviews(self, user_id):
+        """Récupère tous les avis écrits par un utilisateur donné"""
+        user = self.get_user(user_id)
+        if not user:
+            return None
+        return user.reviews.all()

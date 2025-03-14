@@ -33,5 +33,6 @@ class Amenity(BaseModel):
         return {
             "id": self.id,
             "name": self.name,
-            "description": self.description
+            "description": self.description,
+            "places_count": self.places.count() if hasattr(self, 'places') else 0
         }

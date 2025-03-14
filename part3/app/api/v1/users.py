@@ -1,8 +1,7 @@
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from app.services import facade
-from app.models.user import User
 from app.services import get_facade
+from app.models.user import User
 
 api = Namespace('users', description='User operations')
 
@@ -119,3 +118,41 @@ class UserResource(Resource):
             'last_name': updated_user.last_name,
             'email': updated_user.email
         }, 200
+
+
+@api.route('/<user_id>/places')
+class UserPlaces(Resource):
+    @api.response(200, 'List of places owned by the user retrieved successfully')
+    @api.response(404, 'User not found')
+    def get(self, user_id):
+        facade = get_facade()
+        """Get all places owned by a specific user"""
+        # Vérifier d'abord si l'utilisateur existe
+        user = facade.user_facade.get_user(user_id)
+        if not user:
+            return {"error": "User not found"}, 404
+
+        # Récupérer les places de l'utilisateur grâce à la relation
+        places = facade.place_facade.get_places_by_user(user_id)
+
+        # Sérialiser les places avant de les retourner
+        return [place.to_dict() for place in places], 200
+
+
+@api.route('/<user_id>/reviews')
+class UserReviews(Resource):
+    @api.response(200, 'List of reviews written by the user retrieved successfully')
+    @api.response(404, 'User not found')
+    def get(self, user_id):
+        facade = get_facade()
+        """Get all reviews written by a specific user"""
+        # Vérifier d'abord si l'utilisateur existe
+        user = facade.user_facade.get_user(user_id)
+        if not user:
+            return {"error": "User not found"}, 404
+
+        # Récupérer les reviews de l'utilisateur grâce à la relation
+        reviews = facade.review_facade.get_reviews_by_user(user_id)
+
+        # Sérialiser les reviews avant de les retourner
+        return [review.to_dict() for review in reviews], 200
