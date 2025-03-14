@@ -1,10 +1,10 @@
-from app.persistence.repository import InMemoryRepository
+from app.persistence.repository import SQLAlchemyRepository
 from app.models.place import Place
 
 
 class PlaceFacade:
     def __init__(self, user_facade, amenity_facade):
-        self.place_repo = InMemoryRepository()
+        self.place_repo = SQLAlchemyRepository(Place)
         self.user_facade = user_facade
         self.amenity_facade = amenity_facade
 

@@ -1,10 +1,10 @@
-from app.persistence.repository import InMemoryRepository
+from app.persistence.repository import SQLAlchemyRepository
 from app.models.amenity import Amenity
 
 
 class AmenityFacade:
     def __init__(self):
-        self.amenity_repo = InMemoryRepository()
+        self.amenity_repo = SQLAlchemyRepository(Amenity)
 
     def create_amenity(self, amenity_data):
         if 'name' not in amenity_data:

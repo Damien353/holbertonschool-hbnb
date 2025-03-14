@@ -1,4 +1,3 @@
-from app.persistence.repository import InMemoryRepository
 from app.services.userfacade import UserFacade
 from app.services.amenityfacade import AmenityFacade
 from app.services.placefacade import PlaceFacade
