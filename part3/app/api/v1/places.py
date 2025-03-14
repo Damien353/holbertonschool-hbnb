@@ -47,7 +47,7 @@ class PlaceList(Resource):
             return {"error": "Le prix doit être positif"}, 400
 
         # Appel à la méthode pour créer un lieu
-        new_place = facade.create_place(place_data)
+        new_place = facade.place_facade.create_place(place_data)
 
         if isinstance(new_place, tuple):  # Si create_place() a retourné une erreur
             return new_place
@@ -57,7 +57,7 @@ class PlaceList(Resource):
     @api.response(200, 'List of places retrieved successfully')
     def get(self):
         """Retrieve a list of all places"""
-        places = facade.get_all_places()
+        places = facade.place_facade.get_all_places()
 
         # Utilisation de to_dict() pour retourner chaque place sous forme de dictionnaire
         return [place.to_dict() for place in places], 200
@@ -69,7 +69,7 @@ class PlaceResource(Resource):
     @api.response(404, 'Place not found')
     def get(self, place_id):
         """Get place details by ID"""
-        place = facade.get_place(place_id)
+        place = facade.place_facade.get_place(place_id)
         if not place:
             return {"error": "Place not found"}, 404
         return place.to_dict(), 200
@@ -88,7 +88,7 @@ class PlaceResource(Resource):
         place_data = api.payload
 
         # Vérifier si le lieu existe
-        place = facade.get_place(place_id)
+        place = facade.place_facade.get_place(place_id)
         if not place:
             return {"error": "Place not found"}, 404
 
@@ -104,7 +104,7 @@ class PlaceResource(Resource):
             return {"error": "Le prix doit être positif"}, 400
 
         # Mettre à jour le lieu avec les nouvelles données
-        updated_place = facade.update_place(place_id, place_data)
+        updated_place = facade.place_facade.update_place(place_id, place_data)
 
         return updated_place.to_dict(), 200
 
@@ -122,11 +122,11 @@ class PlaceResource(Resource):
             return {"error": "Unauthorized action, admins only"}, 403
 
         # Vérifier si la place existe
-        place = facade.get_place(place_id)
+        place = facade.place_facade.get_place(place_id)
         if not place:
             return {"error": "Place not found"}, 404
 
         # Appel à la méthode pour supprimer la place
-        facade.delete_place(place_id)
+        facade.place_facade.delete_place(place_id)
 
         return {"message": "Place successfully deleted"}, 200

@@ -32,7 +32,7 @@ class AmenityList(Resource):
                 return {'message': "Le champ 'name' est requis et ne doit pas être vide."}, 400
 
             # Appel à la couche métier
-            new_amenity = facade.create_amenity(amenity_data)
+            new_amenity = facade.amenity_facade.create_amenity(amenity_data)
 
             return {
                 'id': new_amenity.id,
@@ -44,7 +44,7 @@ class AmenityList(Resource):
     @api.response(200, 'List of amenities retrieved successfully')
     def get(self):
         """Retrieve a list of all amenities"""
-        amenities = facade.get_all_amenities()
+        amenities = facade.amenity_facade.get_all_amenities()
         return [{'id': amenity.id, 'name': amenity.name} for amenity in amenities], 200
 
 
@@ -54,7 +54,7 @@ class AmenityResource(Resource):
     @api.response(404, 'Amenity not found')
     def get(self, amenity_id):
         """Get amenity details by ID"""
-        amenity = facade.get_amenity(amenity_id)
+        amenity = facade.amenity_facade.get_amenity(amenity_id)
         if not amenity:
             return {'message': 'Amenity not found'}, 404
 
@@ -79,7 +79,8 @@ class AmenityResource(Resource):
             if 'name' not in amenity_data or not amenity_data['name'].strip():
                 return {'message': "Le champ 'name' est requis et ne doit pas être vide."}, 400
 
-            updated_amenity = facade.update_amenity(amenity_id, amenity_data)
+            updated_amenity = facade.amenity_facade.update_amenity(
+                amenity_id, amenity_data)
             if not updated_amenity:
                 return {'message': 'Amenity not found'}, 404
 

@@ -19,7 +19,7 @@ class Login(Resource):
         credentials = api.payload  # Récupérer l'email et le mot de passe du payload
 
         # Étape 1 : Récupérer l'utilisateur en fonction de l'email
-        user = facade.get_user_by_email(credentials['email'])
+        user = facade.user_facade.get_user_by_email(credentials['email'])
 
         # Étape 2 : Vérifier si l'utilisateur existe et si le mot de passe est correct
         if not user or not user.verify_password(credentials['password']):
