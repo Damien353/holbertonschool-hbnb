@@ -1,6 +1,4 @@
 from app.models.BaseModel import BaseModel
-from app.models.user import User
-from app.persistence.repository import InMemoryRepository
 from app.models.amenity import Amenity
 
 
