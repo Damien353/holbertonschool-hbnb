@@ -1,10 +1,11 @@
-from app.persistence.repository import SQLAlchemyRepository
+# app/services/userfacade.py
+from app.services.repositories.user_repository import UserRepository
 from app.models.user import User
 
 
 class UserFacade:
     def __init__(self):
-        self.user_repo = SQLAlchemyRepository(User)
+        self.user_repo = UserRepository()
         self.initialize_admin()
 
     def initialize_admin(self):
@@ -30,13 +31,24 @@ class UserFacade:
         return self.user_repo.get(user_id)
 
     def get_user_by_email(self, email):
-        return self.user_repo.get_by_attribute('email', email)
+        return self.user_repo.get_user_by_email(email)
 
     def get_all_users(self):
         return self.user_repo.get_all()
 
     def update_user(self, user_id, user_data):
-        if not self.user_repo.get(user_id):
+        user = self.user_repo.get(user_id)
+        if not user:
             return None
-        self.user_repo.update(user_id, user_data)
-        return self.user_repo.get(user_id)
+
+        # Traiter séparément le mot de passe s'il est fourni
+        if 'password' in user_data:
+            password = user_data.pop('password')
+            if password:
+                user.hash_password(password)
+
+        # Mettre à jour les autres attributs
+        if user_data:
+            self.user_repo.update(user_id, user_data)
+
+        return user

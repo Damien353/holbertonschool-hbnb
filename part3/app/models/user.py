@@ -1,24 +1,25 @@
-#!/usr/bin/python3
-import re
+# app/models/user.py
+from app.extensions import db, bcrypt
 from app.models.BaseModel import BaseModel
-from app.extensions import db, jwt, bcrypt
+import re
 
 
 class User(BaseModel):
+    __tablename__ = 'users'
 
-    existing_emails = []
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(120), nullable=False, unique=True)
+    password = db.Column(db.String(128), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
     def __init__(self, first_name, last_name, email, password, is_admin=False):
-        super().__init__()
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
         self.is_admin = is_admin
-        self.password = None  # Initialize password as None
         self.validate_email(email)
         self.validate_name(first_name, last_name)
-        self.check_email_uniqueness(email)
-        User.existing_emails.append(email)
 
         if password:
             self.hash_password(password)  # Hash the password if provided
@@ -42,10 +43,6 @@ class User(BaseModel):
         if len(first_name) > 50 or len(last_name) > 50:
             raise ValueError(
                 "Le nom ou prénom ne doit pas dépasser 50 caractères.")
-
-    def check_email_uniqueness(self, email):
-        if email in User.existing_emails:
-            raise ValueError(f"L'email {email} est déjà utilisé.")
 
     def to_dict(self):
         return {
