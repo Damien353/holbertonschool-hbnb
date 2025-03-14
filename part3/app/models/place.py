@@ -1,8 +1,17 @@
 from app.models.BaseModel import BaseModel
-from app.models.amenity import Amenity
+from app.extensions import db
 
 
 class Place(BaseModel):
+    __tablename__ = 'places'
+
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    price = db.Column(db.Float, nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    owner_id = db.Column(db.String(36), nullable=False)
+
     def __init__(self, title, description, price, latitude, longitude, owner_id, user_repository, amenity_repository, amenities=None):
         super().__init__()
         self.title = title
@@ -51,15 +60,15 @@ class Place(BaseModel):
 
     def add_amenity(self, amenity):
         """Ajouter un équipement à la place sans doublon."""
-        if isinstance(amenity, Amenity) and amenity not in self.amenities:
+        if hasattr(amenity, 'id') and amenity not in self.amenities:
             self.amenities.append(amenity)
-        elif not isinstance(amenity, Amenity):
-            raise ValueError("L'objet amenity doit être de type Amenity")
+        elif not hasattr(amenity, 'id'):
+            raise ValueError("L'objet amenity doit avoir un attribut 'id'")
 
     def to_dict(self):
-        # Crée une liste d'objets amenity avec id et name si ce sont des objets Amenity
+        # Crée une liste d'objets amenity avec id et name si ce sont des objets avec ces attributs
         amenities_data = [
-            {"id": amenity.id, "name": amenity.name} if isinstance(amenity, Amenity)
+            {"id": amenity.id, "name": amenity.name} if hasattr(amenity, 'name')
             else None
             for amenity in self.amenities
         ]
@@ -75,7 +84,7 @@ class Place(BaseModel):
             "price": self.price,
             "latitude": self.latitude,
             "longitude": self.longitude,
-            "owner_id": self.owner_id if self.owner else None,
-            "reviews": [review.to_dict() for review in self.reviews],
+            "owner_id": self.owner_id,
+            "reviews": [review.to_dict() for review in self.reviews] if hasattr(self, 'reviews') else [],
             "amenities": amenities_data
         }

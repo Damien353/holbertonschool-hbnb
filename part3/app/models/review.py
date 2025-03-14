@@ -1,9 +1,15 @@
 from app.models.BaseModel import BaseModel
-from app.models.place import Place
-from app.models.user import User
+from app.extensions import db
 
 
 class Review(BaseModel):
+    __tablename__ = 'reviews'
+
+    text = db.Column(db.Text, nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    place_id = db.Column(db.String(36), nullable=False)
+    user_id = db.Column(db.String(36), nullable=False)
+
     def __init__(self, text, rating, place, user):
         super().__init__()
 
@@ -11,6 +17,8 @@ class Review(BaseModel):
         self.rating = rating
         self.place = place
         self.user = user
+        self.place_id = place.id
+        self.user_id = user.id
         self.validate()  # Appel à la méthode de validation
 
     def validate(self):
@@ -21,10 +29,10 @@ class Review(BaseModel):
         if not self.text or len(self.text.strip()) == 0:
             raise ValueError("Review text cannot be empty")
 
-        if not isinstance(self.place, Place):
-            raise ValueError("Place must be a valid Place instance")
-        if not isinstance(self.user, User):
-            raise ValueError("User must be a valid User instance")
+        if not hasattr(self.place, 'id'):
+            raise ValueError("Place must have an 'id' attribute")
+        if not hasattr(self.user, 'id'):
+            raise ValueError("User must have an 'id' attribute")
 
     def to_dict(self):
         """Retourne une représentation sous forme de dictionnaire"""
@@ -32,8 +40,8 @@ class Review(BaseModel):
             "id": self.id,
             "text": self.text,
             "rating": self.rating,
-            "user_id": self.user.id,  # Utiliser l'ID de l'utilisateur
-            "place_id": self.place.id  # Utiliser l'ID du lieu
+            "user_id": self.user_id,
+            "place_id": self.place_id
         }
 
     def update_review(self, new_text, new_rating):
@@ -42,11 +50,3 @@ class Review(BaseModel):
         self.rating = new_rating
         self.validate()  # Revalidation après modification
         self.save()  # Sauvegarde les modifications (avec mise à jour de `updated_at`)
-
-    @property
-    def place_id(self):
-        return self.place.id  # Retourne l'ID du lieu
-
-    @property
-    def user_id(self):
-        return self.user.id  # Retourne l'ID de l'utilisateur

@@ -1,10 +1,10 @@
-from app.persistence.repository import SQLAlchemyRepository
+from app.services.repositories.review_repository import ReviewRepository
 from app.models.review import Review
 
 
 class ReviewFacade:
     def __init__(self, user_facade, place_facade):
-        self.review_repo = SQLAlchemyRepository(Review)
+        self.review_repo = ReviewRepository()
         self.user_facade = user_facade
         self.place_facade = place_facade
 
@@ -27,6 +27,10 @@ class ReviewFacade:
             user=user
         )
         self.review_repo.add(review)
+
+        # Ajouter la review à la place (non persisté en DB car pas de relation)
+        place.add_review(review)
+
         return review
 
     def get_review(self, review_id):
@@ -45,10 +49,15 @@ class ReviewFacade:
         return self.review_repo.get_all()
 
     def update_review(self, review_id, review_data):
-        if not self.review_repo.get(review_id):
+        review = self.review_repo.get(review_id)
+        if not review:
             return None
-        self.review_repo.update(review_id, review_data)
-        return self.review_repo.get(review_id)
+
+        # Mettre à jour uniquement le texte et la note
+        if 'text' in review_data and 'rating' in review_data:
+            review.update_review(review_data['text'], review_data['rating'])
+
+        return review
 
     def delete_review(self, review_id):
         if not self.review_repo.get(review_id):
