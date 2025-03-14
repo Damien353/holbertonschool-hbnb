@@ -20,6 +20,7 @@ class AmenityList(Resource):
     @api.response(400, 'Invalid input data')
     @api.response(403, 'Admin privileges required')
     def post(self):
+        facade = get_facade()
         """Register a new amenity (Admin only)"""
         claims = get_jwt()
         if not claims.get("is_admin"):
@@ -44,6 +45,7 @@ class AmenityList(Resource):
 
     @api.response(200, 'List of amenities retrieved successfully')
     def get(self):
+        facade = get_facade()
         """Retrieve a list of all amenities"""
         amenities = facade.amenity_facade.get_all_amenities()
         return [{'id': amenity.id, 'name': amenity.name} for amenity in amenities], 200
@@ -54,6 +56,7 @@ class AmenityResource(Resource):
     @api.response(200, 'Amenity details retrieved successfully')
     @api.response(404, 'Amenity not found')
     def get(self, amenity_id):
+        facade = get_facade()
         """Get amenity details by ID"""
         amenity = facade.amenity_facade.get_amenity(amenity_id)
         if not amenity:
@@ -68,6 +71,7 @@ class AmenityResource(Resource):
     @api.response(400, 'Invalid input data')
     @api.response(403, 'Admin privileges required')
     def put(self, amenity_id):
+        facade = get_facade()
         """Update an amenity's information (Admin only)"""
         claims = get_jwt()
         if not claims.get("is_admin"):

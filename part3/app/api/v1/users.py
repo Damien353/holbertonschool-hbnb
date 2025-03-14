@@ -22,6 +22,7 @@ class UserList(Resource):
     @api.response(400, 'Invalid input data')
     @api.response(403, 'Forbidden')
     def post(self):
+        facade = get_facade()
         """Register a new user (Admin only)"""
         claims = get_jwt()
         if not claims.get("is_admin"):
@@ -49,6 +50,7 @@ class UserList(Resource):
 
     @api.response(200, 'List of users retrieved successfully')
     def get(self):
+        facade = get_facade()
         """Get the list of users"""
         users = facade.user_facade.get_all_users()
         return [{'id': user.id, 'first_name': user.first_name, 'last_name': user.last_name, 'email': user.email} for user in users], 200
@@ -60,6 +62,7 @@ class UserResource(Resource):
     @api.response(200, 'User details retrieved successfully')
     @api.response(404, 'User not found')
     def get(self, user_id):
+        facade = get_facade()
         user = facade.user_facade.get_user(user_id)
         if not user:
             return {'error': 'User not found'}, 404
@@ -70,6 +73,7 @@ class UserResource(Resource):
     @api.response(403, 'Unauthorized action')
     @api.response(400, 'Invalid modification')
     def put(self, user_id):
+        facade = get_facade()
         """Update user details (Self or Admin)"""
         current_user = get_jwt_identity()
         claims = get_jwt()

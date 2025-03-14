@@ -38,6 +38,7 @@ class PlaceList(Resource):
     @api.response(400, 'Invalid input data')
     @jwt_required()
     def post(self):
+        facade = get_facade()
         """Register a new place (authenticated users only)"""
         place_data = api.payload
         current_user_id = get_jwt_identity()  # Récupère l'ID de l'utilisateur connecté
@@ -57,6 +58,7 @@ class PlaceList(Resource):
 
     @api.response(200, 'List of places retrieved successfully')
     def get(self):
+        facade = get_facade()
         """Retrieve a list of all places"""
         places = facade.place_facade.get_all_places()
 
@@ -69,6 +71,7 @@ class PlaceResource(Resource):
     @api.response(200, 'Place details retrieved successfully')
     @api.response(404, 'Place not found')
     def get(self, place_id):
+        facade = get_facade()
         """Get place details by ID"""
         place = facade.place_facade.get_place(place_id)
         if not place:
@@ -81,6 +84,7 @@ class PlaceResource(Resource):
     @api.response(404, 'Place not found')
     @api.response(403, 'Unauthorized action')
     def put(self, place_id):
+        facade = get_facade()
         """Update a place's information"""
         # Récupérer l'utilisateur actuel via le JWT
         current_user_id = get_jwt_identity()
@@ -114,6 +118,7 @@ class PlaceResource(Resource):
     @api.response(404, 'Place not found')
     @api.response(403, 'Unauthorized action')
     def delete(self, place_id):
+        facade = get_facade()
         """Delete a place (admins only)"""
         # Récupérer les informations du JWT (is_admin)
         claims = get_jwt()

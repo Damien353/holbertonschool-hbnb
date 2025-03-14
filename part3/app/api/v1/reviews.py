@@ -21,6 +21,7 @@ class ReviewList(Resource):
     @api.response(201, 'Review successfully created')
     @api.response(400, 'Invalid input data')
     def post(self):
+        facade = get_facade()
         """Register a new review"""
         # Récupérer l'utilisateur actuel
         current_user_id = get_jwt_identity()
@@ -53,6 +54,7 @@ class ReviewList(Resource):
         return {'message': 'Invalid data'}, 400
 
     def get(self):
+        facade = get_facade()
         """Retrieve a list of all reviews"""
         reviews = facade.review_facade.get_all_reviews()
         # Sérialisation de tous les avis
@@ -65,6 +67,7 @@ class ReviewResource(Resource):
     @api.response(200, 'Review details retrieved successfully')
     @api.response(404, 'Review not found')
     def get(self, review_id):
+        facade = get_facade()
         """Get review details by ID"""
         review = facade.review_facade.get_review(review_id)
         if review:
@@ -78,6 +81,7 @@ class ReviewResource(Resource):
     @api.response(403, 'You can only update your own review or be an admin')
     @api.response(404, 'Review not found')
     def put(self, review_id):
+        facade = get_facade()
         """Update a review's information"""
         user_id = get_jwt_identity()  # Récupère l'ID de l'utilisateur authentifié
         review = facade.review_facade.get_review(review_id)
@@ -107,6 +111,7 @@ class ReviewResource(Resource):
     @api.response(403, 'You can only delete your own review or be an admin')
     @api.response(404, 'Review not found')
     def delete(self, review_id):
+        facade = get_facade()
         """Delete a review"""
         user_id = get_jwt_identity()  # Récupère l'ID de l'utilisateur authentifié
         review = facade.review_facade.get_review(review_id)
@@ -128,6 +133,7 @@ class PlaceReviewList(Resource):
     @api.response(200, 'List of reviews for the place retrieved successfully')
     @api.response(404, 'Place not found')
     def get(self, place_id):
+        facade = get_facade()
         """Get all reviews for a specific place"""
         reviews = facade.review_facade.get_reviews_by_place(place_id)
         if not reviews:

@@ -16,6 +16,7 @@ login_model = api.model('Login', {
 class Login(Resource):
     @api.expect(login_model)
     def post(self):
+        facade = get_facade()
         """Authentifier l'utilisateur et retourner un token JWT"""
         credentials = api.payload  # Récupérer l'email et le mot de passe du payload
 
