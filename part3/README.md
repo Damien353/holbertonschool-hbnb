@@ -72,11 +72,27 @@ http://localhost:5000/api/v1/
 
 4. Default admin credentials:
 
-Email: admin@example.com
-Password: adminpassword
+- Email: admin@example.com
+- Password: adminpassword
+
+## Testing
+
+Running Python Tests
+
+```bash
+cd part3
+python -m pytest test/test.py -v
+```
+
+Running MySQL Tests
+
+```bash
+mysql -u root -p hbnb_db < app/persistence/tables_sql.sql
+mysql -u root -p hbnb_db < test/test.sql
+```
 
 ## Configuration
 
-SQLite database for development (can be configured for MySQL/PostgreSQL)
-JWT tokens signed with a secret key defined in configuration
-Configurable token expiration time
+- SQLite database for development (can be configured for MySQL/PostgreSQL)
+- JWT tokens signed with a secret key defined in configuration
+- Configurable token expiration time
