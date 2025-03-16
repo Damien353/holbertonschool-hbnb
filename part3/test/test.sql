@@ -1,26 +1,25 @@
 -- Insert a test user (owner)
-INSERT INTO users (id, email, first_name, last_name, password, is_admin)
-VALUES
-('36c9050e-ddd3-4c3b-9731-9f487208bbc1', 'testuser@example.com', 'Test', 'User', 'hashedpassword123', FALSE);
+INSERT IGNORE INTO users (id, email, first_name, last_name, password, is_admin)
+VALUES ('36c9050e-ddd3-4c3b-9731-9f487208bbc1', 'testuser@example.com', 'Test', 'User', 'hashedpassword123', FALSE);
 
 -- Insert a test place
-INSERT INTO places (id, title,  despcrition, price, latitude, longitude, owner_id)
+INSERT IGNORE INTO places (id, title,  description, price, latitude, longitude, owner_id)
 VALUES
 ('e4dbd622-b56b-47b4-82ae-e03d6b02a22c', 'Cozy Apartment', 'A small and cozy apartment.', 75.50, 40.712776, -74.005974, '36c9050e-ddd3-4c3b-9731-9f487208bbc1');
 
 -- Insert a review for the place
-INSERT INTO reviews (id, text, rating, user_id, place_id)
+INSERT IGNORE INTO reviews (id, text, rating, user_id, place_id)
 VALUES
 ('3d8e75f5-56a1-470f-8182-7c7027ecf29f', 'Great stay, very comfortable!', 5, '36c9050e-ddd3-4c3b-9731-9f487208bbc1', 'e4dbd622-b56b-47b4-82ae-e03d6b02a22c');
 
 -- Insert amenities
-INSERT INTO amenities (id, name) VALUES
+INSERT IGNORE INTO amenities (id, name) VALUES
 ('fbd74c6e-96c5-4c8b-9b88-cbba7279f8eb', 'WiFi'),
 ('3b5b6799-e3f1-47b7-bd8c-b7a0ed9f52b2', 'Swimming Pool'),
 ('fe80c9f3-b423-46ca-a60c-b2f5ca010d8e', 'Air Conditioning');
 
 -- Link amenities to the place (many-to-many relationship)
-INSERT INTO place_amenity (place_id, amenity_id) VALUES
+INSERT IGNORE INTO place_amenity (place_id, amenity_id) VALUES
 ('e4dbd622-b56b-47b4-82ae-e03d6b02a22c', 'fbd74c6e-96c5-4c8b-9b88-cbba7279f8eb'),
 ('e4dbd622-b56b-47b4-82ae-e03d6b02a22c', '3b5b6799-e3f1-47b7-bd8c-b7a0ed9f52b2'), 
 ('e4dbd622-b56b-47b4-82ae-e03d6b02a22c', 'fe80c9f3-b423-46ca-a60c-b2f5ca010d8e');  

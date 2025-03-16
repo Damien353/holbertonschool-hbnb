@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     UNIQUE (user_id, place_id) 
 );
 
---create table amenity
+-- create table amenity
 CREATE TABLE IF NOT EXISTS amenities(
     id CHAR(36) PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL
